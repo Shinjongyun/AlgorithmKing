@@ -1,7 +1,8 @@
-package Base;
+/*package Base;
 
 import java.io.*;
 import java.util.*;
+
 
 public class Input {
     public static void main(String[] args) throws IOException {
@@ -18,4 +19,4 @@ public class Input {
         // 예시 출력
         System.out.println("N = " + N + ", M = " + M);
     }
-}
+}*/
