@@ -1,4 +1,4 @@
-/*package Graph_Theory;
+package Graph_Theory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,8 +42,8 @@ public class B_1260_DFS_BFS_List {
 
 
 
-        graph_dfs();
-        graph_bfs();
+        // graph_dfs();
+        // graph_bfs();
 
         System.out.println(start);
 
@@ -53,4 +53,4 @@ public class B_1260_DFS_BFS_List {
 
 
 
-}*/
+}
