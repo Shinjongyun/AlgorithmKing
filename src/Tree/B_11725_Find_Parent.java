@@ -43,7 +43,7 @@ public class B_11725_Find_Parent {
     }
     static void dfs(int i){
         visited[i] = true;
-        for(int j : graph[i]){
+        for(int j : graph[i]){ // graph[i]에 있는 요소들을 모두 꺼내서 확인
             if(!visited[j]){
                 dfs(j);
                 parent[j] = i;
