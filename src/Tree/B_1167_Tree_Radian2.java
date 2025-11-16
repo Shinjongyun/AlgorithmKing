@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-public class Main {
+public class B_1167_Tree_Radian2 {
 
     static int V;
     static ArrayList<Node>[] graph;
