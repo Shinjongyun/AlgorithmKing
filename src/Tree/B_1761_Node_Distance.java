@@ -1,8 +1,6 @@
 package Tree;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 
 public class B_1761_Node_Distance {
@@ -10,9 +8,10 @@ public class B_1761_Node_Distance {
     static int M;
     static ArrayList<Edge>[] graph;
     static boolean[] visited;
-    static int[] answer;
-    static int[] parent;
+    static int[][] parent;
     static int[] depth;
+    static int[] dist;
+    static int height = 17;
 
     static class Edge {
         int node;
@@ -28,81 +27,89 @@ public class B_1761_Node_Distance {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-         N= Integer.parseInt(st.nextToken());
-         graph= new ArrayList[N + 1];
-         for(int i=1;i<=N;i++){
-             graph[i]= new ArrayList<Edge>();
-         }
-         visited= new boolean[N+1];
-         answer= new int[N+1];
-         parent= new int[N+1];
-         depth= new int[N+1];
+        N = Integer.parseInt(st.nextToken());
+        graph = new ArrayList[N + 1];
+        for (int i = 1; i <= N; i++) graph[i] = new ArrayList<>();
 
-         for(int i=0; i<N-1; i++){
-             st = new StringTokenizer(br.readLine());
-             int a = Integer.parseInt(st.nextToken());
-             int b = Integer.parseInt(st.nextToken());
-             int c = Integer.parseInt(st.nextToken());
-             graph[a].add(new Edge(b, c));
-             graph[b].add(new Edge(a, c));
-         }
+        visited = new boolean[N + 1];
+        parent = new int[N + 1][height];
+        depth = new int[N + 1];
+        dist = new int[N + 1];
 
-         M= Integer.parseInt(br.readLine());
-         answer= new int [M];
-         dfs(1,0);
+        for (int i = 0; i < N - 1; i++) {
+            st = new StringTokenizer(br.readLine());
+            int a = Integer.parseInt(st.nextToken());
+            int b = Integer.parseInt(st.nextToken());
+            int c = Integer.parseInt(st.nextToken());
+            graph[a].add(new Edge(b, c));
+            graph[b].add(new Edge(a, c));
+        }
 
-         for(int i=0; i<M; i++){
-             st = new StringTokenizer(br.readLine());
-             int start = Integer.parseInt(st.nextToken());
-             int end = Integer.parseInt(st.nextToken());
-             answer[i]=lca(start, end);
-         }
-         for(int i=0; i<M; i++){
-             System.out.println(answer[i]);
-         }
+        setTree(1, 0);
+        parentInit();
+
+        M = Integer.parseInt(br.readLine());
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < M; i++) {
+            st = new StringTokenizer(br.readLine());
+            int start = Integer.parseInt(st.nextToken());
+            int end = Integer.parseInt(st.nextToken());
+            sb.append(getDist(start, end)).append("\n");
+        }
+
+        System.out.print(sb);
     }
 
-    static void dfs(int cur, int d){
-        visited[cur]=true;
-        depth[cur]=d;
-        for (Edge next : graph[cur]) {
-            if (!visited[next.node]) {
-                parent[next.node] = cur;
-                dfs(next.node, d + 1);
+    // DFS: depth, parent[][0], dist[] 초기화
+    static void setTree(int cur, int d) {
+        visited[cur] = true;
+        depth[cur] = d;
+        for (Edge e : graph[cur]) {
+            if (!visited[e.node]) {
+                parent[e.node][0] = cur;
+                dist[e.node] = dist[cur] + e.distance;
+                setTree(e.node, d + 1);
             }
         }
     }
+
+    static void parentInit() {
+        for (int k = 1; k < height; k++) {
+            for (int v = 1; v <= N; v++) {
+                int mid = parent[v][k - 1];
+                parent[v][k] = parent[mid][k - 1];
+            }
+        }
+    }
+
     static int lca(int a, int b) {
-
-        int total=0;
-
-        // 1. 깊이를 맞추기 (더 깊은 쪽을 위로 올리기)
-        if (depth[a] < depth[b]) { // b가 더 깊은 경우
-            int temp = a;
+        if (depth[a] < depth[b]) {
+            int tmp = a;
             a = b;
-            b = temp;
+            b = tmp;
         }
 
-        while (depth[a] > depth[b]) {
-            total += find(parent[a], a);
-            a = parent[a];
-        }
-
-        while (a != b) {
-            total += find(parent[a], a);
-            a = parent[a];
-            total += find(parent[b], b);
-            b = parent[b];
-        }
-        return total;
-    }
-
-    static int find(int p, int a){
-        for(int i=0; i<graph[p].size(); i++){
-            if(graph[p].get(i).node==a){
-                return graph[p].get(i).distance;
+        for(int i = height-1; i>=0; i--){
+            if(Math.pow(2, i) <= depth[a] - depth[b]){
+                a=parent[a][i];
             }
         }
-        return -1;
+
+        if (a == b) return a;
+
+        for (int i = height - 1; i >= 0; i--) {
+            if (parent[a][i] != parent[b][i]) {
+                a = parent[a][i];
+                b = parent[b][i];
+            }
+        }
+
+        return parent[a][0];
+    }
+
+    static int getDist(int a, int b) {
+        int c = lca(a, b);
+        return dist[a] + dist[b] - 2 * dist[c];
     }
 }
