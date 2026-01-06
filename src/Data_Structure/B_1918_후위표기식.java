@@ -47,7 +47,7 @@ public class B_1918_후위표기식 {
                     if (!s.isEmpty()) s.pop(); // '(' 제거
 
                 } else {
-                    // + - * / : 우선순위 높은/같은 것 먼저 pop
+                    // + - * / : 우선순위 높은/같은 것 먼저 pop, 즉 +가 들어 왔을 때 이미 있던 *를 먼저 pop 시키기
                     while (!s.isEmpty() && s.peek() != '(' && pri(s.peek()) >= pri(ch)) {
                         sb.append(s.pop());
                     }
