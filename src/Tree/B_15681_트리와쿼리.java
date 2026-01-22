@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class B_15681_트리와 쿼리 {
+public class B_15681_트리와쿼리 {
 
     static int N;
     static int R;
