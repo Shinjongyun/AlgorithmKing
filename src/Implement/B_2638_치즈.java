@@ -42,17 +42,15 @@ public class B_2638_치즈 {
         }
 
         while (remain > 0) {
-            // outside 매 턴 초기화
+            // outside 매 턴 초기화 후 다시 계산
             for (int i = 0; i < N; i++) {
                 for (int j = 0; j < M; j++) {
                     outside[i][j] = false;
                 }
             }
-
-            // 외부 공기 다시 계산
             outsiding();
 
-            // 치즈 좌표 큐에 넣기
+            // 치즈 녹이기 드가자
             for (int i = 0; i < N; i++) {
                 for (int j = 0; j < M; j++) {
                     if (cheese[i][j]) cq.offer(new int[]{i, j});
@@ -101,7 +99,7 @@ public class B_2638_치즈 {
             if (count >= 2) melt.add(cur);
         }
 
-        // 동시에 녹이기
+        // List를 이요하여 동시에 녹이기
         for (int[] cur : melt) {
             cheese[cur[0]][cur[1]] = false;
             remain--;
