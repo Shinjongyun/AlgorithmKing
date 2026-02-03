@@ -57,14 +57,14 @@ public class B_12764_싸지방 {
             }
 
             // 비어있는 컴퓨터가 없다면 컴퓨터 증설
-                if(emptyComs.isEmpty()) {
-                    usingComs.add(new int[]{++comCount, user.end});
-                    useCnt[comCount]++;
+            if(emptyComs.isEmpty()) {
+                usingComs.add(new int[]{++comCount, user.end});
+                useCnt[comCount]++;
 
-                } else { // 빈 컴퓨터가 있으면 재사용
-                    int comNum = emptyComs.poll();
-                    useCnt[comNum]++;
-                    usingComs.add(new int[]{comNum, user.end});
+            } else { // 빈 컴퓨터가 있으면 재사용
+                int comNum = emptyComs.poll();
+                useCnt[comNum]++;
+                usingComs.add(new int[]{comNum, user.end});
             }
         }
 
