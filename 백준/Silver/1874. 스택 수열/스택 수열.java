@@ -26,30 +26,24 @@ public class Main {
         int numIndex = 0;
         int num = 1;
         while(true){
-            if (!stack.isEmpty() && stack.peek()==arr[numIndex]) {
-                stack.pop();
-                sb.append("-"+"\n");
-                numIndex++;
+
+            if(numIndex == N){
+                break;
             }
-            else if(arr[numIndex]!=num) {
-                if(num>N){
-                    System.out.print("NO");
-                    return;
-                }
+
+            while(arr[numIndex] >= num){
                 stack.push(num);
-                sb.append("+"+"\n");
+                sb.append("+" + "\n");
                 num++;
-            } else if (arr[numIndex]==num) {
-                sb.append("+"+"\n");
-                sb.append("-"+"\n");
+            }
+
+            if(!stack.isEmpty() && stack.peek() == arr[numIndex]){
+                stack.pop();
+                sb.append("-" + "\n");
                 numIndex++;
-                num++;
             } else {
                 System.out.print("NO");
                 return;
-            }
-            if(numIndex==N){
-                break;
             }
         }
         System.out.print(sb);
