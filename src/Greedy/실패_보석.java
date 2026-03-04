@@ -13,6 +13,7 @@ public class 실패_보석 {
     static int[] V;
     static PriorityQueue<int[]> pq;
     static int answer = 0;
+    static boolean[] used;
 
     public static void main(String[] args) throws IOException {
 
@@ -24,6 +25,7 @@ public class 실패_보석 {
         M = new int[N];
         V = new int[N];
         C = new Integer[K];
+        used = new boolean[K];
         pq = new PriorityQueue<>((a, b) -> {
             if (a[1] == b[1]) return Integer.compare(a[0], b[0]);
             return Integer.compare(b[1], a[1]);
@@ -41,13 +43,14 @@ public class 실패_보석 {
             C[i] = Integer.parseInt(st.nextToken());
         }
 
-        Arrays.sort(C, Collections.reverseOrder());
+        Arrays.sort(C);
 
-        for(int i = 0; i < K; i++){
-            while(!pq.isEmpty()){
-                int[] cur = pq.poll();
-                if(C[i] >= cur[0]){
+        while(!pq.isEmpty()){
+            int[] cur = pq.poll();
+            for(int j = 0; j < K; j++){
+                if(C[j] > cur[0] && !used[j]){
                     answer += cur[1];
+                    used[j] = true;
                     break;
                 }
             }

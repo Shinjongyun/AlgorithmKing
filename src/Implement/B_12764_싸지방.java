@@ -1,63 +1,84 @@
 package Implement;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.PriorityQueue;
+import java.util.StringTokenizer;
 
 public class B_12764_싸지방 {
 
     static int N;
-    static PriorityQueue<int []> users;
-    static PriorityQueue<int []> using;
-    static PriorityQueue<Integer> waiting;
-    static int computerCount = 0;
-    static int[] count;
+    static PriorityQueue<int[]> game;   // [start, end]  start 오름차순
+    static PriorityQueue<int[]> using;  // [end, seat]   end 오름차순
+    static PriorityQueue<Integer> empty; // 비어있는 seat 번호 (작은 번호 우선)
+    static int[] usedCount;             // seat별 사용 횟수
 
     public static void main(String[] args) throws IOException {
+
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
 
-        N = Integer.parseInt(br.readLine());
-        users = new PriorityQueue<>((int[] a, int[] b) -> Integer.compare(a[0], b[0]));
+        N = Integer.parseInt(st.nextToken());
 
-        for(int i=0; i<N; i++) {
-            StringTokenizer st = new StringTokenizer(br.readLine());
+        // 시작 시간 기준
+        game = new PriorityQueue<>((a, b) -> {
+            int r = Integer.compare(a[0], b[0]);
+            if (r == 0) r = Integer.compare(a[1], b[1]);
+            return r;
+        });
+
+        for (int i = 0; i < N; i++) {
+            st = new StringTokenizer(br.readLine());
             int a = Integer.parseInt(st.nextToken());
             int b = Integer.parseInt(st.nextToken());
-            users.add(new int [] {a, b});
+            game.add(new int[]{a, b});
         }
 
-        using = new PriorityQueue<>((int[] a, int[] b) -> Integer.compare(a[1], b[1]));
-        waiting = new PriorityQueue<>();
+        // 끝나는 시간 기준
+        using = new PriorityQueue<>((a, b) -> {
+            int r = Integer.compare(a[0], b[0]); // end
+            if (r == 0) r = Integer.compare(a[1], b[1]); // seat
+            return r;
+        });
 
-        count = new int[N+1];
-        while(!users.isEmpty()) {
+        empty = new PriorityQueue<>();
+        usedCount = new int[N]; // 최대 N자리까지 가능
 
-            int[] user = users.poll();
-            int start = user[0];
-            int end = user[1];
+        int seatCount = 0;
 
-            while(!using.isEmpty()) {
-                int curIndex = using.peek()[0];
-                int curEnd = using.peek()[1];
-                if(curEnd <= start){
-                    waiting.add(curIndex);   // 반납하기
-                    using.poll();
-                } else break;
+        while (!game.isEmpty()) {
+            int[] cur = game.poll();
+            int start = cur[0];
+            int end = cur[1];
+
+            // 끝난 자리들 반환
+            while (!using.isEmpty() && using.peek()[0] <= start) {
+                int[] finished = using.poll();   // [end, seat]
+                empty.add(finished[1]);
             }
 
-            if(waiting.isEmpty()) {
-                using.add(new int [] {++computerCount, end});
-                count[computerCount]++;
+            int seat;
+            // 자리가 남아있는 경우
+            if (!empty.isEmpty()) {
+                seat = empty.poll(); // 가장 작은 자리 번호
             }
-            else{
-                int use = waiting.poll();
-                using.add(new int [] {use, end});
-                count[use]++;
+            // 자리가 다 꽉찬 경우
+            else {
+                seat = seatCount++;  // 새 자리 배정
             }
 
+            usedCount[seat]++;
+
+            // 자리 사용중 등록
+            using.add(new int[]{end, seat});
         }
-        System.out.println(computerCount);
-        for (int i = 1; i <= computerCount; i++) {
-            System.out.print(count[i] + " ");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(seatCount).append("\n");
+        for (int i = 0; i < seatCount; i++) {
+            sb.append(usedCount[i]).append(" ");
         }
+        System.out.print(sb);
     }
 }
