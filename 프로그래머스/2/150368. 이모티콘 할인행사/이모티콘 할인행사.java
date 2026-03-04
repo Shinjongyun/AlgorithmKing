@@ -4,58 +4,74 @@ class Solution {
     
     static int[][] users;
     static int[] emoticons;
-    static int[] sale = {10, 20, 30, 40};
-    static int[] answer = new int[2];
+    static int[] sales = {40, 30, 20, 10};
+    static int[] answer = new int [2];
+    static int n;
+    static int m;
+    static int[] rates;
     
     public int[] solution(int[][] users, int[] emoticons) {
+    
         this.users = users;
         this.emoticons = emoticons;
-        int[] rates = new int[emoticons.length];
+        n = users.length;
+        m = emoticons.length;
+        rates = new int [m];
         
-        back(rates, 0);
-        
+        dfs(0);
         return answer;
     }
     
-    public static void back(int[] rates, int depth){
-        if(depth == rates.length){
-            checkOptimal(rates);
+    public static void dfs (int depth){
+        if(depth == m){
+            evaluate();
             return;
         }
         
-        for(int i=0; i<sale.length; i++){
-            rates[depth] = sale[i];
-            back(rates, depth+1);
+        for (int sale : sales) {
+            rates[depth] = sale;
+            dfs(depth + 1);
         }
     }
     
-    
-    public static void checkOptimal(int[] rates){
-        // 해당 할인율 조합에 대해서 총 계산을 한다.
-        int total = 0;
-        int count = 0;
-        for(int i=0; i<users.length; i++){
+    public static void evaluate(){
+        int total = 0; // 최종 계산의 액수
+        int count = 0; // 최종 계산의 가입자 수 
+        
+        // 사용자 별로 계산 
+        for(int i=0; i<n; i++){
             int userTotal = 0;
-            for(int j=0; j<emoticons.length; j++){
-                if(users[i][0]<=rates[j]){
-                    userTotal += emoticons[j] - emoticons[j] * rates[j] / 100;
-                    total += emoticons[j] - emoticons[j] * rates[j] / 100;
+            
+            for(int j=0; j<m; j++){
+                
+                // 할인율이 최소 한정보다 작을 때, 볼것도 없음
+                if(rates[j]<users[i][0]){
+                    continue;
+                }
+                else {
+                    userTotal += emoticons[j] - emoticons[j] * rates[j] /100;
                 }
             }
-            if(userTotal>=users[i][1]){
-                count++;
-                total -= userTotal;
+            
+            // 이제 가입자 수 계산 
+            if (userTotal>=users[i][1]){
+                count++;    // 가입해라
+            }
+            else{
+                total += userTotal;
             }
         }
-        if(count>answer[0]){
+        
+        // 최종 가입자 수 비교
+        if(count > answer[0]){
             answer[0] = count;
             answer[1] = total;
-            return;
         }
+        
+        // 최종 금액 비교
         if(count == answer[0] && total > answer[1]){
             answer[0] = count;
             answer[1] = total;
-            return;
         }
     }
 }
