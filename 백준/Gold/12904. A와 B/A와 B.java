@@ -1,55 +1,40 @@
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.io.*;
 import java.util.StringTokenizer;
 
 public class Main {
 
-    static char[] to;
-    static char[] from;
+    static String from;
+    static String to;
+    static int answer;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        from  = br.readLine();
+        to = br.readLine();
 
-        String line = br.readLine();
-        from = line.toCharArray();
-        line = br.readLine();
-        to = line.toCharArray();
-        int start = to.length -1;
-        int end = from.length -1;
+        StringBuilder sb = new StringBuilder();
+        sb.append(to);
 
-        for (int i = start; i > end; i--) {
-            if(to[i] == 'A') addA();
-            else if(to[i] == 'B') shuffle();
-        }
-        if(Arrays.equals(to, from)) System.out.print(1);
-        else System.out.print(0);
-    }
+        for(int i=to.length()-1; i>=0; i--) {
 
-    public static void shuffle(){
-        char[] tArray;
-        tArray = to.clone();
-        to = new char[tArray.length - 1];
-        for(int i = 0; i < tArray.length -1; i++){
-            to[i] = tArray[i];
-        }
-        for(int i = 0; i < to.length/2; i++){
-            char temp = to[i];
-            to[i] = to[to.length - i - 1];
-            to[to.length - i - 1] = temp;
-        }
-    }
+            if(sb.length() == from.length()) break;
 
-    public static void addA(){
-        char[] tArray;
-        tArray = to.clone();
-        to = new char[tArray.length - 1];
-        for(int i = 0; i < tArray.length -1; i++){
-            to[i] = tArray[i];
+            if(sb.charAt(sb.length()-1) == 'A') {
+                sb.delete(sb.length()-1, sb.length());
+            } else if (sb.charAt(sb.length()-1) == 'B') {
+                sb.delete(sb.length()-1, sb.length());
+                sb.reverse();
+            }
         }
+        String finish = sb.toString();
+        if(finish.equals(from)){
+            answer = 1;
+        } else {
+            answer = 0;
+        }
+        System.out.print(answer);
     }
 }
