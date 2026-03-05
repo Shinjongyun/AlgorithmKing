@@ -3,62 +3,57 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.PriorityQueue;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Main {
 
     static int N;
-    static PriorityQueue<int []> lesson;
+    static int[][] lecture;
     static PriorityQueue<int []> studying;
-    static PriorityQueue<int []> room;
-    static int answer = 0;
+    static long answer = 0;
 
     public static void main(String[] args) throws IOException {
-
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-        N=Integer.parseInt(st.nextToken());
+        N = Integer.parseInt(st.nextToken());
 
-        lesson = new PriorityQueue<>((a, b) -> {
-            int result = Integer.compare(a[0], b[0]);
-            if (result == 0) {
-                return Integer.compare(a[1], b[1]);
-            }
-            return result;
-        });
-        for(int i =0; i<N; i++){
+        lecture = new int[N][2];
+        studying = new PriorityQueue<>((a, b) -> Integer.compare(a[1], b[1]));
+        for (int i = 0; i < N; i++) {
             st = new StringTokenizer(br.readLine());
-            int a = Integer.parseInt(st.nextToken());
-            int b = Integer.parseInt(st.nextToken());
-            lesson.offer(new int[]{a,b});
+            lecture[i][0] = Integer.parseInt(st.nextToken());
+            lecture[i][1] = Integer.parseInt(st.nextToken());
         }
 
-        studying = new PriorityQueue<>((a, b) -> Integer.compare(a[1],b[1]));
+        Arrays.sort(lecture, (a, b) -> Integer.compare(a[0], b[0]));
 
-        while(!lesson.isEmpty()){
-            int[] cur = lesson.poll();
+        int count = 0;
+        for (int i = 0; i < N; i++) {
 
-            while(!studying.isEmpty()){
-                if(studying.peek()[1] <= cur[0]){
+            int[] cur = lecture[i];
+            int start = cur[0];
+            int end = cur[1];
+
+            while(!studying.isEmpty()) {
+                if(start >= studying.peek()[1]) {
                     studying.poll();
-                } else {
+                } else{
                     break;
                 }
             }
 
-            // 강의실이 없다면
-            if(answer < studying.size() + 1){
+            // 강의실이 다 꽉차있는 경우
+            if(count < studying.size() + 1){
                 studying.offer(cur);
-                answer++;
+                count++;
             }
-            // 남으면
-            else {
+            // 강의실이 남아 있는 경우
+            else{
                 studying.offer(cur);
             }
         }
 
-        System.out.print(answer);
+        System.out.print(count);
     }
 }
