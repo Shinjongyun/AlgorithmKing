@@ -1,5 +1,3 @@
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,25 +5,23 @@ import java.util.*;
 
 public class Main {
 
-    static int N;
-    static int M;
+    static int N, M;
     static int[] oil;
+    static List<Edge>[] graph;
     static long[][] dist;
-    static List<Edge>[] edges;
-    static int answer = 0;
-    static int INF = Integer.MAX_VALUE;
+    static final long INF = Long.MAX_VALUE;
 
-    public static class Edge {
+    static class Edge {
         int to;
-        int weight;
+        int len;
 
-        public Edge(int a, int b) {
-            this.to = a;
-            this.weight = b;
+        Edge(int to, int len) {
+            this.to = to;
+            this.len = len;
         }
     }
 
-    static class State {
+    static class State implements Comparable<State> {
         int node;
         int minOil;
         long cost;
@@ -35,10 +31,14 @@ public class Main {
             this.minOil = minOil;
             this.cost = cost;
         }
+
+        @Override
+        public int compareTo(State o) {
+            return Long.compare(this.cost, o.cost);
+        }
     }
 
     public static void main(String[] args) throws IOException {
-
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
@@ -46,16 +46,27 @@ public class Main {
         M = Integer.parseInt(st.nextToken());
 
         oil = new int[N + 1];
-        edges = new List[N + 1];
+        graph = new ArrayList[N + 1];
+
         for (int i = 1; i <= N; i++) {
-            edges[i] = new ArrayList<>();
+            graph[i] = new ArrayList<>();
         }
 
-        int maxOil=0;
         st = new StringTokenizer(br.readLine());
+        int maxOil = 0;
         for (int i = 1; i <= N; i++) {
             oil[i] = Integer.parseInt(st.nextToken());
             maxOil = Math.max(maxOil, oil[i]);
+        }
+
+        for (int i = 0; i < M; i++) {
+            st = new StringTokenizer(br.readLine());
+            int a = Integer.parseInt(st.nextToken());
+            int b = Integer.parseInt(st.nextToken());
+            int c = Integer.parseInt(st.nextToken());
+
+            graph[a].add(new Edge(b, c));
+            graph[b].add(new Edge(a, c));
         }
 
         dist = new long[N + 1][maxOil + 1];
@@ -65,26 +76,18 @@ public class Main {
             }
         }
 
-        for (int i = 0; i < M; i++) {
-            st = new StringTokenizer(br.readLine());
-            int a = Integer.parseInt(st.nextToken());
-            int b = Integer.parseInt(st.nextToken());
-            int c = Integer.parseInt(st.nextToken());
-            edges[a].add(new Edge(b, c));
-            edges[b].add(new Edge(a, c));
-        }
+        dijkstra();
 
-        dij(1);
         long answer = INF;
-        for (int i = 0; i <= maxOil; i++) {
-            answer = Math.min(answer, dist[N][i]);
+        for (int price = 0; price <= maxOil; price++) {
+            answer = Math.min(answer, dist[N][price]);
         }
 
-        System.out.print(answer);
+        System.out.println(answer);
     }
 
-    public static void dij(int start) {
-        PriorityQueue<State> pq = new PriorityQueue<>((a, b) -> a.minOil - b.minOil);
+    static void dijkstra() {
+        PriorityQueue<State> pq = new PriorityQueue<>();
 
         dist[1][oil[1]] = 0;
         pq.offer(new State(1, oil[1], 0));
@@ -92,11 +95,13 @@ public class Main {
         while (!pq.isEmpty()) {
             State cur = pq.poll();
 
-            if (dist[cur.node][cur.minOil] < cur.cost) continue;
+            if (dist[cur.node][cur.minOil] < cur.cost) {
+                continue;
+            }
 
-            for (Edge next : edges[cur.node]) {
+            for (Edge next : graph[cur.node]) {
+                long nextCost = cur.cost + (long) cur.minOil * next.len;
                 int nextMinOil = Math.min(cur.minOil, oil[next.to]);
-                long nextCost = cur.cost + (long) cur.minOil * next.weight;
 
                 if (dist[next.to][nextMinOil] > nextCost) {
                     dist[next.to][nextMinOil] = nextCost;
