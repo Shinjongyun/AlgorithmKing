@@ -1,4 +1,5 @@
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -6,16 +7,14 @@ import java.util.*;
 
 public class Main {
 
+    static int N, M;
     static List<Edge>[] edges;
-    static int N;
-    static int M;
-    static int[] dist;
+    static int[] fox;
     static int[][] wolf;
-    static int[] parent;
-    static int answer = 0;
     static int INF = Integer.MAX_VALUE;
+    static int answer = 0;
 
-    public static class Edge {
+    static class Edge{
         int to;
         int weight;
         public Edge(int to, int weight) {
@@ -24,15 +23,14 @@ public class Main {
         }
     }
 
-    public static class Node {
+    static class Node{
         int to;
         int dist;
-        int state; // 0: 다음엔 빠르게, 1: 다음엔 느리게
-
-        public Node(int to, int dist, int state) {
+        int stats;
+        public Node(int to, int dist, int stats) {
             this.to = to;
             this.dist = dist;
-            this.state = state;
+            this.stats = stats;
         }
     }
 
@@ -45,98 +43,87 @@ public class Main {
         M = Integer.parseInt(st.nextToken());
 
         edges = new List[N+1];
-        dist = new int[N+1];
+        fox = new int[N+1];
         wolf = new int[N+1][2];
-        parent = new int[N+1];
 
         for(int i=1; i<=N; i++){
             edges[i] = new ArrayList<>();
-            dist[i] = INF;
+            fox[i] = INF;
             wolf[i][0] = INF;
             wolf[i][1] = INF;
         }
 
-        for(int i = 0; i<M; i++){
+        for(int i=0; i<M; i++){
             st = new StringTokenizer(br.readLine());
-            int from = Integer.parseInt(st.nextToken());
-            int to = Integer.parseInt(st.nextToken());
-            int weight = Integer.parseInt(st.nextToken()) * 2;
-            edges[from].add(new Edge(to, weight));
-            edges[to].add(new Edge(from, weight));
+            int a = Integer.parseInt(st.nextToken());
+            int b = Integer.parseInt(st.nextToken());
+            int c = Integer.parseInt(st.nextToken()) * 2;
+            edges[a].add(new Edge(b, c));
+            edges[b].add(new Edge(a, c));
         }
 
-        dij(1);
+        dij1(1);
         dij2(1);
-        for(int i=2; i<=N; i++){
-            int wolfMin = Math.min(wolf[i][0], wolf[i][1]);
-            if (dist[i] < wolfMin) {
+
+        for(int i=1; i<=N; i++){
+            int bestWolf = Math.min(wolf[i][0], wolf[i][1]);
+            if(bestWolf > fox[i]){
                 answer++;
             }
         }
         System.out.print(answer);
     }
 
-    public static void dij(int start){
-        PriorityQueue<Edge> pq = new PriorityQueue<>((a, b) -> a.weight - b.weight);
-        boolean[] visited = new boolean[N+1];
+    public static void dij1(int start){
+        PriorityQueue<Node> q = new PriorityQueue<>((a, b) -> a.dist - b.dist);
 
-        pq.add(new Edge(start, 0));
-        dist[start] = 0;
+        q.offer(new Node(start, 0, 0));
+        fox[start] = 0;
+        while(!q.isEmpty()){
+            Node node = q.poll();
 
-        while(!pq.isEmpty()){
-            Edge edge = pq.poll();
-            int cur = edge.to;
+            int cur = node.to;
+            int distance = node.dist;
 
-            if(visited[cur]){
-                continue;
-            }
-            visited[cur] = true;
+            if(fox[cur] < distance) continue;
 
             for(Edge e : edges[cur]){
-                if(dist[e.to] > dist[cur] + e.weight){
-                    dist[e.to] = dist[cur] + e.weight;
-                    pq.add(new Edge(e.to, dist[e.to]));
+                if(fox[e.to] > distance + e.weight){
+                    fox[e.to] = distance + e.weight;
+                    q.offer(new Node(e.to, fox[e.to], 0));
                 }
             }
         }
     }
 
-    public static void dij2(int start) {
-        PriorityQueue<Node> pq = new PriorityQueue<>((a, b) -> Integer.compare(a.dist, b.dist));
-        boolean[][] visited = new boolean[N + 1][2];
+    public static void dij2(int start){
+        PriorityQueue<Node> q = new PriorityQueue<>((a, b) -> a.dist - b.dist);
 
+        q.offer(new Node(start, 0, 0));
         wolf[start][0] = 0;
-        pq.add(new Node(start, 0, 0));
+        while(!q.isEmpty()){
+            Node node = q.poll();
+            int cur = node.to;
+            int distance = node.dist;
+            int status = node.stats;
 
-        while (!pq.isEmpty()) {
-            Node curNode = pq.poll();
+            if(wolf[cur][status] < distance) continue;
 
-            int cur = curNode.to;
-            int dist = curNode.dist;
-            int state = curNode.state;
-
-            if (visited[cur][state]) continue;
-            visited[cur][state] = true;
-
-            for (Edge next : edges[cur]) {
-                int nextDist;
-                int nextState;
-
-                if (state == 0) {
-                    // 이번 이동은 빠르게
-                    nextDist = dist + next.weight / 2;
-                    nextState = 1;
-                } else {
-                    // 이번 이동은 느리게
-                    nextDist = dist + next.weight * 2;
-                    nextState = 0;
+            for(Edge e : edges[cur]){
+                int nStatus, nextDist;
+                if(status == 0){ // 전에 애가 너 빠르게 이동하래
+                    nextDist = distance + e.weight / 2;
+                    nStatus = 1;
+                } else { // 전에 애가 너 느리게 이동하래
+                    nextDist = distance + e.weight * 2;
+                    nStatus = 0;
                 }
-
-                if (wolf[next.to][nextState] > nextDist) {
-                    wolf[next.to][nextState] = nextDist;
-                    pq.add(new Node(next.to, nextDist, nextState));
+                if(wolf[e.to][nStatus] > nextDist){
+                    wolf[e.to][nStatus] = nextDist;
+                    q.offer(new Node(e.to, nextDist, nStatus));
                 }
             }
         }
     }
+
 }
