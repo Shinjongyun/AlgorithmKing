@@ -1,47 +1,41 @@
 class Solution {
+    
+    static int answer = -1;
+    
     public int solution(int[][] signals) {
-        int lcmValue = 1;
-
-        // 전체 주기의 최소공배수
-        for (int[] signal : signals) {
-            int cycle = signal[0] + signal[1] + signal[2];
-            lcmValue = lcm(lcmValue, cycle);
+        int max = 1;
+        
+        for(int[] signal : signals){
+            int total = signal[0] + signal[1] +signal[2];
+            max *= total;
         }
 
-        // 1초부터 LCM까지 탐색
-        for (int t = 1; t <= lcmValue; t++) {
-            boolean allYellow = true;
-
-            for (int[] signal : signals) {
-                int g = signal[0];
-                int y = signal[1];
-                int r = signal[2];
-                int cycle = g + y + r;
-
-                int pos = (t - 1) % cycle;
-
-                if (!(g <= pos && pos < g + y)) {
-                    allYellow = false;
-                    break;
-                }
+        for(int sec=1; sec<=max; sec++){
+            boolean [] correct = new boolean[signals.length];
+            for(int i = 0; i<signals.length; i++){
+                if(isYellow(signals[i], sec)) correct[i] = true;
+            }   
+            
+            boolean flag = true;
+            for(int i =0; i<signals.length; i++){
+                if(!correct[i]) flag = false;
             }
-
-            if (allYellow) return t;
+            
+            if(flag) {
+                answer = sec;
+                break;
+            }
         }
-
-        return -1;
+        return answer; 
     }
+        
+    public static boolean isYellow(int [] signal, int sec){
+        int g = signal[0];
+        int y = signal[1];
+        int r = signal[2];
+        int now = sec % (g + y + r);
 
-    private int gcd(int a, int b) {
-        while (b != 0) {
-            int temp = a % b;
-            a = b;
-            b = temp;
-        }
-        return a;
-    }
-
-    private int lcm(int a, int b) {
-        return a / gcd(a, b) * b;
+        if(now > g && now <= g + y) return true;
+        return false;
     }
 }
