@@ -2,96 +2,119 @@ import java.util.*;
 
 class Solution {
     
-    static int N;
-    static int M = 6;
-    static int[] answer;
-    static int[][] dp;
+    static int[] choice;
+    static int n;
+    static int answer = 0;
+    static int[] answerP;
     static boolean[] visited;
+    static int length;
     static int[][] dice;
-    static long maxWin = 0;
-    
+
+    // 최대 6^(10)이기 때문에 그냥 완전탐색 X
+    // 비트마스킹은 그때 힌트권에서 이경우는 choice가 아님   -> 그냥 주사위 조합 + 누적합
     public int[] solution(int[][] dice) {
         
         this.dice = dice;
+        length = dice.length;
+        n = dice.length / 2;
+        choice = new int[n];
+        answerP = new int[n];
+        visited = new boolean [dice.length];
         
-        N = dice.length;
-        
-        visited = new boolean[N];
-        
-        answer = new int[N / 2];
-        
-        pickDice(0, 0);
-        
-        return answer;
+        back(0, 0);
+        return answerP;
     }
     
-    public static void pickDice(int depth, int start) {
-        if (depth == N / 2) {
-            cal();
+    public static void back(int depth, int idx){
+        
+        if(depth == n){
+            int count = cal();
+            if(count > answer){
+                answer = count;
+                for(int i=0; i<n; i++){
+                    answerP[i] = choice[i] + 1;
+                }
+            }
             return;
         }
-
-        for (int i = start; i < N; i++) {
+        
+        for(int i=idx; i<length; i++){
+            choice[depth] = i;
             visited[i] = true;
-            pickDice(depth + 1, i + 1);
+            back(depth+1, i+1);
+            choice[depth] = 0;
             visited[i] = false;
         }
     }
     
-    public static void cal(){
-        List<Integer> a = new ArrayList<>();
-        List<Integer> b = new ArrayList<>();
-
-        for (int i = 0; i < N; i++) {
-            if (visited[i]) a.add(i);
-            else b.add(i);
-        }
-
-        long[] dpA = getDp(a);
-        long[] dpB = getDp(b);
-
-        long win = 0;
-
-        for (int i = 0; i <= 500; i++) {
-            for (int j = 0; j < i; j++) {
-                win += dpA[i] * dpB[j];
-            }
-        }
-
-        if (win > maxWin) {
-            maxWin = win;
-
-            int idx = 0;
-            for (int i = 0; i < N; i++) {
-                if (visited[i]) answer[idx++] = i + 1;
-            }
-        }
-    }
+    // choice는 주사위의 인데스를 저장 예를 들어 #1, #4 이면 0, 3을 저장
+    public static int cal(){
     
-    public static long[] getDp(List<Integer> pDice) {
+        int[][] dp = new int[n][501];
+        int[][] dp1 = new int[n][501];
 
-        long[] dp = new long[501];
-        dp[0] = 1; // 시작: 아무것도 안 굴렸을 때 합 0
+        int[] notChoice = new int[n];
+        int idx = 0;
 
-        for (int i = 0; i < pDice.size(); i++) {
+        for (int i = 0; i < length; i++) {
+            if (!visited[i]) {
+                notChoice[idx++] = i;
+            }
+        }
 
-            int diceIndex = pDice.get(i);
+        // A 첫 번째 주사위
+        for(int i = 0; i < 6; i++){
+            int j = dice[choice[0]][i];
+            dp[0][j]++;
+        }
 
-            long[] newDp = new long[501];
+        // A DP
+        for(int i = 1; i < n; i++){
+            for(int j = 0; j < 501; j++){
+                for(int k = 0; k < 6; k++){
+                    int prev = j - dice[choice[i]][k];
 
-            for (int sum = 0; sum <= 500; sum++) {
-
-                if (dp[sum] == 0) continue;
-
-                for (int k = 0; k < 6; k++) {
-                    int nextSum = sum + dice[diceIndex][k];
-                    newDp[nextSum] += dp[sum];
+                    if(prev >= 0){
+                        dp[i][j] += dp[i - 1][prev];
+                    }
                 }
             }
-
-            dp = newDp; // 갱신
         }
 
-        return dp;
+        // B 첫 번째 주사위
+        for(int i = 0; i < 6; i++){
+            int j = dice[notChoice[0]][i];
+            dp1[0][j]++;
+        }
+
+        // B DP
+        for(int i = 1; i < n; i++){
+            for(int j = 0; j < 501; j++){
+                for(int k = 0; k < 6; k++){
+                    int prev = j - dice[notChoice[i]][k];
+
+                    if(prev >= 0){
+                        dp1[i][j] += dp1[i - 1][prev];
+                    }
+                }
+            }
+        }
+
+        // B 누적합
+        int[] prefixB = new int[501];
+        prefixB[0] = dp1[n - 1][0];
+
+        for(int i = 1; i < 501; i++){
+            prefixB[i] = prefixB[i - 1] + dp1[n - 1][i];
+        }
+
+        int count = 0;
+
+        // A 합이 i일 때, B 합이 i보다 작으면 A 승리
+        for(int i = 1; i < 501; i++){
+            count += dp[n - 1][i] * prefixB[i - 1];
+        }
+
+        return count;
     }
 }
