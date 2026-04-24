@@ -1,41 +1,42 @@
+import java.util.*;
+
 class Solution {
-    
+
     static int answer = -1;
+    static int[][] signals;
+    static int n;
     
     public int solution(int[][] signals) {
-        int max = 1;
         
-        for(int[] signal : signals){
-            int total = signal[0] + signal[1] +signal[2];
-            max *= total;
+        this.signals = signals;
+        n = signals.length;
+        
+        int totalTime = 1;
+        for(int i=0; i<n; i++){
+            totalTime *=20;
         }
-
-        for(int sec=1; sec<=max; sec++){
-            boolean [] correct = new boolean[signals.length];
-            for(int i = 0; i<signals.length; i++){
-                if(isYellow(signals[i], sec)) correct[i] = true;
-            }   
+        
+        for(int i=1; i<=totalTime; i++){
+            boolean[] isYellow = new boolean[n];
             
             boolean flag = true;
-            for(int i =0; i<signals.length; i++){
-                if(!correct[i]) flag = false;
+            for(int j=0; j<n; j++){
+                isYellow[j] = checkYellow(i, j);
+                if(!isYellow[j]) flag =false;
             }
             
-            if(flag) {
-                answer = sec;
-                break;
-            }
+            if(flag) return i;
         }
-        return answer; 
+        return answer;
     }
+    
+    public static boolean checkYellow(int now, int idx){
+        int sec = signals[idx][0] + signals[idx][1] + signals[idx][2]; // 이게 주기
+        int time = now % sec; // 나머지 시간
         
-    public static boolean isYellow(int [] signal, int sec){
-        int g = signal[0];
-        int y = signal[1];
-        int r = signal[2];
-        int now = sec % (g + y + r);
-
-        if(now > g && now <= g + y) return true;
-        return false;
+        if(time > signals[idx][0] && time <= signals[idx][0] + signals[idx][1]){
+            return true;
+        }
+        return false; 
     }
 }
