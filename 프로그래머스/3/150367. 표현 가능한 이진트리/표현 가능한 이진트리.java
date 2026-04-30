@@ -5,57 +5,59 @@ class Solution {
     static int[] answer;
     
     public int[] solution(long[] numbers) {
-        answer = new int[numbers.length];
         
-        for(int i = 0; i < numbers.length; i++){
-            boolean flag = cal(numbers[i]);
-
+        answer = new int [numbers.length];
+        
+        for(int i=0; i<numbers.length; i++){
+            boolean flag = false;
+            if(binary(numbers[i])) flag = true;
             if(flag) answer[i] = 1;
             else answer[i] = 0;
         }
-
+        
         return answer;
     }
     
-    public static boolean cal(long num){
+    public static boolean binary(long num){
+        
         String m = Long.toBinaryString(num);
-
-        int size = 1;
-
-        while (size < m.length()) {
+        StringBuilder sb = new StringBuilder();
+        
+        int size = 0;
+        while(size < m.length()){
             size = size * 2 + 1;
+        }  // size가 15
+        
+        while(size != m.length()){
+            sb.append("0");
+            size--;
         }
-
-        StringBuilder mask = new StringBuilder();
-
-        while (mask.length() + m.length() < size) {
-            mask.append("0");
-        }
-
-        mask.append(m);
-
-        return check(mask.toString(), 0, mask.length() - 1);
+        sb.append(m);
+        
+        return binary(sb, 0, sb.length() - 1);
     }
-
-    public static boolean check(String tree, int low, int high) {
-        if (low > high) return true;
-
+    
+    public static boolean binary(StringBuilder num, int low, int high){
+        
+        if(low >= high){
+            return true;
+        }
+        
         int mid = (low + high) / 2;
-
-        if (tree.charAt(mid) == '0') {
-            if (hasOne(tree, low, mid - 1)) return false;
-            if (hasOne(tree, mid + 1, high)) return false;
+        
+        if(num.charAt(mid) == '0'){
+            if(!cal(low, mid - 1, num)) return false;
+            if(!cal(mid + 1, high, num)) return false;
         }
-
-        return check(tree, low, mid - 1) && check(tree, mid + 1, high);
+        
+        return binary(num, mid + 1, high) && binary(num, low, mid - 1);
     }
-
-    public static boolean hasOne(String tree, int low, int high) {
-        for (int i = low; i <= high; i++) {
-            if (tree.charAt(i) == '1') {
-                return true;
-            }
+    
+    public static boolean cal(int low, int high, StringBuilder num){
+        
+        for(int i=low; i<=high; i++){
+            if(num.charAt(i) == '1') return false;
         }
-        return false;
+        return true;
     }
 }
