@@ -3,83 +3,97 @@ import java.util.*;
 class Solution {
     
     static int[] answer = new int[4];
-    static int n;
+    static int n = 0;
     static List<Edge>[] graph;
-    static boolean[] isYou;
-    static int me;
+    static int start;
     
-    static class Edge {
+    static class Edge{
         int to;
+        boolean visited;
         
-        public Edge(int to) {
-            this.to = to;
+        public Edge(int t){
+            this.to = t;
+            this.visited = false;
         }
     }
         
     public int[] solution(int[][] edges) {
-        answer = new int[4];
-        n = 0;
         
-        for (int i = 0; i < edges.length; i++) {
-            int num = Math.max(edges[i][0], edges[i][1]);
-            n = Math.max(n, num);
-        }
         
-        graph = new List[n + 1];
-        for (int i = 1; i <= n; i++) {
-            graph[i] = new ArrayList<>();
-        }
+        for(int i=0; i<edges.length; i++){
+           int from = edges[i][0];
+           int to = edges[i][1];
+            int one = Math.max(from, to);
+            n =Math.max(n, one);
+       }
         
-        isYou = new boolean[n + 1];
+        boolean[] find = new boolean[n+1];
+        int[] out = new int[n + 1];          // 나가는 간선 개수
         
-        for (int i = 0; i < edges.length; i++) {
-            int from = edges[i][0];
-            int to = edges[i][1];
-            
-            graph[from].add(new Edge(to));
-            isYou[to] = true;
-        }
+        for(int i=0; i<edges.length; i++){
+             int from = edges[i][0];
+           int to = edges[i][1];
+            find[to] = true;
+            out[from]++;
+       }
         
-        // 생성 노드 찾기
-        for (int i = 1; i <= n; i++) {
-            if (!isYou[i] && graph[i].size() >= 2) {
-                me = i;
+        for(int i=1; i<=n; i++){
+            if(!find[i] && out[i] >= 2){
+                start = i;
                 break;
             }
         }
+        answer[0] = start;
         
-        answer[0] = me;
-        
-        // 핵심 수정: start는 me가 아니라 e.to
-        for (Edge e : graph[me]) {
-            dfs(e.to, e.to, false);
+        graph = new List[n + 1];
+        for(int i=1; i<=n; i++){
+            graph[i] = new ArrayList<>();
         }
         
+        
+       for(int i=0; i<edges.length; i++){
+           int from = edges[i][0];
+           int to = edges[i][1];
+           graph[from].add(new Edge(to));
+       }
+        
+        int[] time = new int[n+1];
+        dfs(start, true, 0, time);
         return answer;
     }
     
-    public static void dfs(int from, int start, boolean isStart) {
-        
-        // 8자 그래프
-        if (graph[from].size() >= 2) {
-            answer[3]++;
-            return;
-        }
+    public static void dfs(int cur, boolean isDonut, int cycle, int[] time){
 
-        // 막대 그래프
-        if (graph[from].size() == 0) {
-            answer[2]++;
-            return;
-        }
+        for(Edge e : graph[cur]){
+            
+            boolean nextIsDonut = isDonut;
 
-        // 도넛 그래프
-        if (from == start && isStart) {
-            answer[1]++;
-            return;
+            if (graph[e.to].size() != 1) {
+                nextIsDonut = false;
+            }
+            
+            if(!e.visited){
+                if(cur == start){
+                    cycle = e.to;
+                }
+                
+                if(graph[e.to].size() == 0){
+                    answer[2]++;
+                    continue;
+                }
+                
+                if(cycle == e.to && isDonut && time[e.to] == graph[e.to].size()){
+                    answer[1]++;
+                }
+                
+                if(cycle == e.to && !isDonut && time[e.to] == graph[e.to].size()){
+                    answer[3]++;
+                }
+                
+                e.visited  = true;
+                time[e.to]++;
+                dfs(e.to, nextIsDonut, cycle, time);
+            }
         }
-
-        // 나가는 간선이 1개인 경우 계속 이동
-        Edge next = graph[from].get(0);
-        dfs(next.to, start, true);
     }
 }
