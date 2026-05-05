@@ -4,68 +4,75 @@ class Solution {
     
     static String answer = "impossible";
     static boolean found = false;
+    static int n, m, x, y, r, c, k;
     
     static int[][] dir = {
-        {1, 0},   
-        {0, -1},  
-        {0, 1},   
-        {-1, 0}   
+        {1, 0},   // d
+        {0, -1},  // l
+        {0, 1},   // r
+        {-1, 0}   // u
     };
     
-    static int N, M, R, C, K;
+    static char[] dirChar = {'d', 'l', 'r', 'u'};
     
     public String solution(int n, int m, int x, int y, int r, int c, int k) {
         
-        N = n;
-        M = m;
-        R = r;
-        C = c;
-        K = k;
+        this.x = x;
+        this.y = y;
+        this.n = n;
+        this.m = m;
+        this.r = r;
+        this.c = c;
+        this.k = k;
         
-        int dist = Math.abs(x - R) + Math.abs(y - C);
+        answer = "impossible";
+        found = false;
         
-        if (dist > K || (K - dist) % 2 != 0) {
+        int dist = Math.abs(x - r) + Math.abs(y - c);
+        
+        if (dist > k || (k - dist) % 2 == 1) {
             return "impossible";
         }
         
-        dfs(x, y, 0, "");
+        back(0, x, y, new StringBuilder());
         
         return answer;
     }
     
-    public static void dfs(int x, int y, int depth, String route) {
+    public static void back(int depth, int curX, int curY, StringBuilder sb) {
         
         if (found) return;
         
-        if (depth == K) {
-            if (x == R && y == C) {
-                answer = route;
+        if (depth == k) {
+            if (curX == r && curY == c) {
+                answer = sb.toString();
                 found = true;
             }
             return;
         }
         
         for (int i = 0; i < 4; i++) {
+            int nx = curX + dir[i][0];
+            int ny = curY + dir[i][1];
             
-            int nx = x + dir[i][0];
-            int ny = y + dir[i][1];
+            if (nx < 1 || ny < 1 || nx > n || ny > m) {
+                continue;
+            }
             
-            if (nx < 1 || ny < 1 || nx > N || ny > M) continue;
+            int remain = k - depth - 1;
+            int need = Math.abs(nx - r) + Math.abs(ny - c);
             
-            int remain = K - (depth + 1);
-            int dist = Math.abs(nx - R) + Math.abs(ny - C);
+            if (need > remain) {
+                continue;
+            }
             
-            if (dist > remain) continue;
-            if ((remain - dist) % 2 != 0) continue;
+            if ((remain - need) % 2 == 1) {
+                continue;
+            }
             
-            String nextRoute = route;
-            
-            if (i == 0) nextRoute += "d";
-            if (i == 1) nextRoute += "l";
-            if (i == 2) nextRoute += "r";
-            if (i == 3) nextRoute += "u";
-            
-            dfs(nx, ny, depth + 1, nextRoute);
+            sb.append(dirChar[i]);
+            back(depth + 1, nx, ny, sb);
+            sb.deleteCharAt(sb.length() - 1);
             
             if (found) return;
         }
