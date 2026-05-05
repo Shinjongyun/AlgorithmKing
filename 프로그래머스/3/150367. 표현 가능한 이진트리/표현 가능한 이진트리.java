@@ -10,54 +10,57 @@ class Solution {
         
         for(int i=0; i<numbers.length; i++){
             boolean flag = false;
-            if(binary(numbers[i])) flag = true;
+            
+            if(cal(numbers[i])) flag = true;
+            
             if(flag) answer[i] = 1;
-            else answer[i] = 0;
         }
         
         return answer;
     }
     
-    public static boolean binary(long num){
+    public static boolean cal(long number){
         
-        String m = Long.toBinaryString(num);
+        String str = Long.toBinaryString(number);
+        int strSize = str.length();
         StringBuilder sb = new StringBuilder();
         
         int size = 0;
-        while(size < m.length()){
+        while(size < strSize){
             size = size * 2 + 1;
-        }  // size가 15
+        }
         
-        while(size != m.length()){
+        while(size != strSize){
             sb.append("0");
             size--;
         }
-        sb.append(m);
+        sb.append(str);
         
-        return binary(sb, 0, sb.length() - 1);
+        int low = 0;
+        int high = sb.length() - 1;
+        return bin(sb, low, high);
     }
     
-    public static boolean binary(StringBuilder num, int low, int high){
-        
-        if(low >= high){
+    public static boolean bin(StringBuilder sb, int low, int high){
+
+        if(low>high){
             return true;
         }
         
-        int mid = (low + high) / 2;
+        int mid = (low + high) / 2 ;
         
-        if(num.charAt(mid) == '0'){
-            if(!cal(low, mid - 1, num)) return false;
-            if(!cal(mid + 1, high, num)) return false;
+        if(sb.charAt(mid) == '0'){
+            if(lookUp(low, mid -1, sb)) return false;
+            if(lookUp(mid+1, high, sb)) return false;
         }
         
-        return binary(num, mid + 1, high) && binary(num, low, mid - 1);
+        return bin(sb, low, mid - 1) && bin(sb, mid + 1, high);
     }
     
-    public static boolean cal(int low, int high, StringBuilder num){
-        
-        for(int i=low; i<=high; i++){
-            if(num.charAt(i) == '1') return false;
+    public static boolean lookUp(int start, int end, StringBuilder sb){
+        for(int i=start; i<=end; i++){
+            if(sb.charAt(i) == '1') return true;
         }
-        return true;
+        return false;
     }
 }
