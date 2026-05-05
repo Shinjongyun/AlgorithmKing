@@ -2,76 +2,79 @@ import java.util.*;
 
 class Solution {
     
+    static int[] answer = new int[2];
+    static int[] rate = {10, 20, 30, 40};
+    static int[] choice;
+    static int n; // 이코티콘 수
     static int[][] users;
     static int[] emoticons;
-    static int[] sales = {40, 30, 20, 10};
-    static int[] answer = new int [2];
-    static int n;
-    static int m;
-    static int[] rates;
+    
     
     public int[] solution(int[][] users, int[] emoticons) {
     
-        this.users = users;
         this.emoticons = emoticons;
-        n = users.length;
-        m = emoticons.length;
-        rates = new int [m];
+        this.users = users;
+        n = emoticons.length;
+        choice = new int [n+1];
         
-        dfs(0);
+        back(1);
+        
         return answer;
     }
     
-    public static void dfs (int depth){
-        if(depth == m){
-            evaluate();
+    public static void back(int depth){
+        
+        if(depth == n+1){
+            cal();
             return;
         }
         
-        for (int sale : sales) {
-            rates[depth] = sale;
-            dfs(depth + 1);
+        
+        for(int i=0; i<4; i++){
+            choice[depth] = rate[i];
+            back(depth + 1);
+            choice[depth] = 0;
+            
         }
     }
     
-    public static void evaluate(){
-        int total = 0; // 최종 계산의 액수
-        int count = 0; // 최종 계산의 가입자 수 
+    public static void cal(){
         
-        // 사용자 별로 계산 
-        for(int i=0; i<n; i++){
-            int userTotal = 0;
+        int totalS = 0;
+        int total = 0;
+        
+        for(int[] u : users){
             
-            for(int j=0; j<m; j++){
-                
-                // 할인율이 최소 한정보다 작을 때, 볼것도 없음
-                if(rates[j]<users[i][0]){
-                    continue;
-                }
-                else {
-                    userTotal += emoticons[j] - emoticons[j] * rates[j] /100;
+            int yRate = u[0];
+            int yLimit = u[1];
+            
+            int count = 0;
+            for(int i=0; i<n; i++){
+                // 내가 원하는 게 더 크면 스킵
+                if(yRate > choice[i+1]){
+                    
+                } else{
+                    count += emoticons[i] * (100 - choice[i+1]) / 100;
                 }
             }
             
-            // 이제 가입자 수 계산 
-            if (userTotal>=users[i][1]){
-                count++;    // 가입해라
+            if(count >= yLimit){
+                totalS++;
+                continue;
             }
-            else{
-                total += userTotal;
-            }
+            total += count;
         }
         
-        // 최종 가입자 수 비교
-        if(count > answer[0]){
-            answer[0] = count;
+        if(answer[0] < totalS){
+            answer[0] = totalS;
             answer[1] = total;
+            return;
         }
         
-        // 최종 금액 비교
-        if(count == answer[0] && total > answer[1]){
-            answer[0] = count;
-            answer[1] = total;
+        if(answer[0] == totalS){
+            answer[1] = Math.max(answer[1], total);
+            return;
         }
     }
+        
 }
