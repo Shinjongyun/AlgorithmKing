@@ -7,9 +7,12 @@ class Solution {
     static List<Edge>[] graph;
     static int INF = Integer.MAX_VALUE;
     static int n;
+    static int[] summits;
+    static int[] gates;
 
     static boolean[] isGate;
     static boolean[] isSummit;
+    static boolean[] visited;
     
     static class Edge {
         int to;
@@ -23,16 +26,30 @@ class Solution {
     
     public int[] solution(int n, int[][] paths, int[] gates, int[] summits) {
         
+        Arrays.sort(summits);
+        
         this.n = n;
+        this.summits = summits;
+        this.gates = gates;
 
         graph = new ArrayList[n + 1];
         isGate = new boolean[n + 1];
         isSummit = new boolean[n + 1];
+        
+        for(int i=0; i<gates.length; i++){
+            isGate[gates[i]] = true;
+        }
+        
+        for(int i=0; i<summits.length; i++){
+            isSummit[summits[i]] = true;
+        }
 
         for (int i = 1; i <= n; i++) {
             graph[i] = new ArrayList<>();
         }
         
+        int left = INF;
+        int right = 0;
         for (int i = 0; i < paths.length; i++) {
             int from = paths[i][0];
             int to = paths[i][1];
@@ -40,78 +57,54 @@ class Solution {
             
             graph[from].add(new Edge(to, w));
             graph[to].add(new Edge(from, w));
+            right = Math.max(w, right);
+            left = Math.min(w, left);
         }
 
-        for (int gate : gates) {
-            isGate[gate] = true;
+        while(left <= right){
+            visited = new boolean [n+1];
+            int mid = (left + right) / 2;
+            
+            if(canPlace(mid)) right = mid -1;
+            else left = mid + 1;
         }
 
-        for (int summit : summits) {
-            isSummit[summit] = true;
-        }
-
-        // 산봉우리 번호 작은 순서 우선
-        Arrays.sort(summits);
-
-        // 모든 gate에서 동시에 출발
-        dij(gates);
-
-        int minIntensity = INF;
-        int bestSummit = 0;
-
-        for (int summit : summits) {
-            if (d[summit] < minIntensity) {
-                minIntensity = d[summit];
-                bestSummit = summit;
-            }
-        }
-
-        answer[0] = bestSummit;
-        answer[1] = minIntensity;
- 
-        return answer;
+       return answer;
     }
     
-    public static void dij(int[] gates) {
-    
-        PriorityQueue<int[]> q = new PriorityQueue<>(
-            (a, b) -> Integer.compare(a[1], b[1])
-        );
-
-        d = new int[n + 1];
-        Arrays.fill(d, INF);
-
-        // 모든 출입구를 시작점으로 넣기
-        for (int gate : gates) {
-            d[gate] = 0;
-            q.add(new int[]{gate, 0});
+    public static boolean canPlace(int limit){
+        
+        Queue<Integer> q = new LinkedList<>();
+        for(int i=0; i<gates.length; i++){
+            q.add(gates[i]);
+            visited[gates[i]] = true;
         }
-
-        while (!q.isEmpty()) {
-
-            int[] cur = q.poll();
-            int now = cur[0];
-            int cost = cur[1];
-
-            if (cost > d[now]) continue;
-
-            // 산봉우리에 도착하면 스킵
-            if (isSummit[now]) continue;
-
-            for (Edge e : graph[now]) {
-                int next = e.to;
-
-                // 다른 출입구로 들어가면 스킵
-                if (isGate[next]) continue;
-
-                // 경로 중 가장 큰 간선 비용을 저장해야 함
-                int nextC = Math.max(d[now], e.w);
-
-                if (d[next] > nextC) {
-                    d[next] = nextC;
-                    q.add(new int[]{next, d[next]});
+        
+        while(!q.isEmpty()){
+            
+            int cur = q.poll();
+            
+            for(Edge e : graph[cur]){
+                if(isGate[e.to] || visited[e.to]) continue;
+                if(e.w > limit) continue;
+                visited[e.to] = true;
+                
+                // 산봉우리에 도착하면 더 이상 그 뒤로 탐색하지 않음
+                if (isSummit[e.to]) {
+                    continue;
                 }
+                
+                q.add(e.to);
             }
         }
+        
+        for(int i=0; i<summits.length; i++){
+            if(visited[summits[i]]) {
+                answer[0] = summits[i];
+                answer[1] = limit;
+                return true;
+            }
+        }
+        return false;
     }
 }
