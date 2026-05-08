@@ -2,25 +2,22 @@ import java.util.*;
 
 class Solution {
     
-    static int[] d;
-    static int[] answer = new int[2];
-    static List<Edge>[] graph;
-    static int INF = Integer.MAX_VALUE;
-    static int n;
-    static int[] summits;
-    static int[] gates;
-
     static boolean[] isGate;
     static boolean[] isSummit;
-    static boolean[] visited;
+    static int n;
+    static List<Edge>[] graph;
+    static int maxDist= 0;
+    static int minDist = Integer.MAX_VALUE;
+    static int[] answer = new int [2];
+    static int[] gates;
+    static int[] summits;
     
-    static class Edge {
+    static class Edge{
         int to;
-        int w;
-
-        public Edge(int t, int w) {
+        int dist;
+        public Edge(int t, int d){
             this.to = t;
-            this.w = w;
+            this.dist = d;
         }
     }
     
@@ -29,12 +26,11 @@ class Solution {
         Arrays.sort(summits);
         
         this.n = n;
-        this.summits = summits;
         this.gates = gates;
-
-        graph = new ArrayList[n + 1];
-        isGate = new boolean[n + 1];
-        isSummit = new boolean[n + 1];
+        this.summits = summits;
+        
+        isGate = new boolean[n+1];
+        isSummit = new boolean [n+1];
         
         for(int i=0; i<gates.length; i++){
             isGate[gates[i]] = true;
@@ -43,68 +39,81 @@ class Solution {
         for(int i=0; i<summits.length; i++){
             isSummit[summits[i]] = true;
         }
-
-        for (int i = 1; i <= n; i++) {
+        
+        graph = new List[n+1];
+        for(int i=1; i<=n; i++){
             graph[i] = new ArrayList<>();
         }
         
-        int left = INF;
-        int right = 0;
-        for (int i = 0; i < paths.length; i++) {
-            int from = paths[i][0];
-            int to = paths[i][1];
-            int w = paths[i][2];
+        for(int [] p : paths){
             
-            graph[from].add(new Edge(to, w));
-            graph[to].add(new Edge(from, w));
-            right = Math.max(w, right);
-            left = Math.min(w, left);
-        }
-
-        while(left <= right){
-            visited = new boolean [n+1];
-            int mid = (left + right) / 2;
+            int from = p[0];
+            int to = p[1];
+            int dist = p[2];
             
-            if(canPlace(mid)) right = mid -1;
-            else left = mid + 1;
+            graph[from].add(new Edge(to, dist));
+            graph[to].add(new Edge(from, dist));
+            maxDist = Math.max(dist, maxDist);
+            minDist = Math.min(dist, minDist);
         }
-
-       return answer;
+        
+        int low = minDist;
+        int high = maxDist;
+        while(low <= high){
+            
+            int mid = (low + high) / 2;
+            
+            if(canPlace(mid)) high = mid - 1;
+            else low = mid + 1;
+        }
+        
+        return answer;
     }
     
-    public static boolean canPlace(int limit){
-        
+    public static boolean canPlace(int mid){
+    
         Queue<Integer> q = new LinkedList<>();
-        for(int i=0; i<gates.length; i++){
-            q.add(gates[i]);
-            visited[gates[i]] = true;
+        boolean[] visited = new boolean[n + 1];
+
+        for(int gate : gates){
+            q.add(gate);
+            visited[gate] = true;
         }
-        
+
+        int bestSummit = Integer.MAX_VALUE;
+
         while(!q.isEmpty()){
-            
             int cur = q.poll();
-            
+
             for(Edge e : graph[cur]){
-                if(isGate[e.to] || visited[e.to]) continue;
-                if(e.w > limit) continue;
-                visited[e.to] = true;
-                
-                // 산봉우리에 도착하면 더 이상 그 뒤로 탐색하지 않음
-                if (isSummit[e.to]) {
+
+                // mid보다 큰 간선은 못 지나감
+                if(e.dist > mid) continue;
+
+                // 이미 방문한 곳이면 스킵
+                if(visited[e.to]) continue;
+
+                // 다른 출입구로 들어가면 안 됨
+                if(isGate[e.to]) continue;
+
+                // 산봉우리에 도착한 경우
+                if(isSummit[e.to]){
+                    bestSummit = Math.min(bestSummit, e.to);
+                    visited[e.to] = true;
                     continue;
                 }
-                
+
+                visited[e.to] = true;
                 q.add(e.to);
             }
         }
-        
-        for(int i=0; i<summits.length; i++){
-            if(visited[summits[i]]) {
-                answer[0] = summits[i];
-                answer[1] = limit;
-                return true;
-            }
+
+        if(bestSummit != Integer.MAX_VALUE){
+            answer[0] = bestSummit;
+            answer[1] = mid;
+            return true;
         }
+
         return false;
     }
 }
