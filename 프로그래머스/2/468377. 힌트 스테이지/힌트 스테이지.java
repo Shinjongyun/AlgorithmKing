@@ -2,41 +2,35 @@ import java.util.*;
 
 class Solution {
 
-    static int answer;
-    static int n;
-    static int[][] cost;
-    static int[][] hint;
-
     public int solution(int[][] cost, int[][] hint) {
 
-        this.cost = cost;
-        this.hint = hint;
-
-        n = cost.length;
-        answer = Integer.MAX_VALUE;
-
+        int n = cost.length;
         int total = 1 << (n - 1);
+        int answer = Integer.MAX_VALUE;
 
         for (int mask = 0; mask < total; mask++) {
-            int sum = 0;
-            int[] count = new int[n];
 
-            for (int stage = 0; stage < n; stage++) {
+            int[] hintCount = new int[n];
+            int totalCost = 0;
 
-                int use = Math.min(n - 1, count[stage]);
-                sum += cost[stage][use];
+            for (int i = 0; i < n; i++) {
 
-                if ((mask & (1 << stage)) != 0) {
-                    sum += hint[stage][0];
+                // 이번에 최대로 쓸 수 있는 힌트권의 수
+                int use = Math.min(hintCount[i], n - 1);
+                totalCost += cost[i][use];
 
-                    for (int i = 1; i < hint[stage].length; i++) {
-                        int targetStage = hint[stage][i] - 1;
-                        count[targetStage]++;
+                if ((mask & (1 << i)) != 0) {
+
+                    totalCost += hint[i][0];
+
+                    for (int j = 1; j < hint[i].length; j++) {
+                        int target = hint[i][j] - 1;
+                        hintCount[target]++;
                     }
                 }
             }
 
-            answer = Math.min(answer, sum);
+            answer = Math.min(answer, totalCost);
         }
 
         return answer;
