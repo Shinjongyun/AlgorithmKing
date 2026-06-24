@@ -2,105 +2,111 @@ import java.util.*;
 
 class Solution {
     
+    static int n; 
     static int[][] dice;
-    static int n;
-    static int[] choice;
-    static int[] answer;
-    static int total;
+    static int answer = 0;
+    static int[] optimal;
 
     public int[] solution(int[][] dice) {
-        Solution.dice = dice;
-        n = dice.length;
-        choice = new int[n / 2];
-        answer = new int[n / 2];
-        total = 0;
-
-        back(0, 0);
-
-        return answer;
-    }
         
-    public static void back(int depth, int start) {
-        if (depth == n / 2) {
-            cal();
-            return;
+        this.dice = dice; 
+        n = dice.length;
+        
+        int[] choice = new int[n/2];
+        optimal = new int[n/2];
+        back(0, choice, 0);
+        
+        for(int i=0; i<optimal.length; i++){
+            optimal[i]++;
         }
         
-        for (int i = start; i < n; i++) {
+        return optimal;
+    }
+        
+    // 조합은 뭐다? 백트래킹이다.
+    public static void back(int depth, int[] choice, int idx){
+        
+        if(depth == n/2){
+            int result = cal(choice); 
+            
+            if(result > answer){
+                optimal = choice.clone();
+                answer = result; 
+            }
+            
+            return; 
+        }
+        
+        for(int i=idx; i<n; i++){
             choice[depth] = i;
-            back(depth + 1, i + 1);
+            back(depth+1, choice, i+1);
+            choice[depth] = 0;
         }
     }
     
-    public static void cal() {
-        int maxSum = 500;
-
-        int[][] dp = new int[maxSum + 1][n / 2];
-        int[][] dp1 = new int[maxSum + 1][n / 2];
+    public static int cal(int[] choice){
         
-        boolean[] selected = new boolean[n];
+        int m = n/2;
+        // 일단 A 부터 
+        int[][] dp = new int[m + 1][5001];
 
-        for (int i = 0; i < n / 2; i++) {
-            selected[choice[i]] = true;
+        dp[0][0] = 1;
+
+        for (int i = 0; i < m; i++) {
+            int curIdx = choice[i];
+
+            for (int sum = 0; sum <= 5000; sum++) {
+                if (dp[i][sum] == 0) continue;
+
+                for (int k = 0; k < 6; k++) {
+                    int curNum = dice[curIdx][k];
+                    dp[i + 1][sum + curNum] += dp[i][sum];
+                }
+            }
         }
-
-        int[] bChoice = new int[n / 2];
+        
+        // 그 다음 B
+        int[][] dpB = new int[m + 1][5001];
+        
+        int[] choiceB = new int [n/2];
+        boolean[] visited = new boolean [n];
+        for(int i=0; i<n/2; i++){
+            visited[choice[i]] = true;
+        }
         int idx = 0;
-
-        for (int i = 0; i < n; i++) {
-            if (!selected[i]) {
-                bChoice[idx++] = i;
+        for(int i=0; i<n; i++){
+            if(!visited[i]) {
+                choiceB[idx] = i;
+                idx++;
             }
         }
         
-        for (int i = 0; i < 6; i++) {
-            int cur = dice[choice[0]][i];
-            dp[cur][0]++;
-        }
-        
-        for (int d = 1; d < n / 2; d++) {
-            for (int sum = 1; sum <= maxSum; sum++) {
-                for (int j = 0; j < 6; j++) {
-                    int cur = dice[choice[d]][j];
+        dpB[0][0] = 1;
 
-                    if (sum - cur >= 0) {
-                        dp[sum][d] += dp[sum - cur][d - 1];
-                    }
+        for (int i = 0; i < m; i++) {
+            int curIdx = choiceB[i];
+
+            for (int sum = 0; sum <= 5000; sum++) {
+                if (dpB[i][sum] == 0) continue;
+
+                for (int k = 0; k < 6; k++) {
+                    int curNum = dice[curIdx][k];
+                    dpB[i + 1][sum + curNum] += dpB[i][sum];
                 }
             }
         }
         
-        for (int i = 0; i < 6; i++) {
-            int cur = dice[bChoice[0]][i];
-            dp1[cur][0]++;
-        }
-        
-        for (int d = 1; d < n / 2; d++) {
-            for (int sum = 1; sum <= maxSum; sum++) {
-                for (int j = 0; j < 6; j++) {
-                    int cur = dice[bChoice[d]][j];
+        int win = 0; 
+        for (int aSum = 0; aSum <= 5000; aSum++) {
+            if (dp[m][aSum] == 0) continue;
 
-                    if (sum - cur >= 0) {
-                        dp1[sum][d] += dp1[sum - cur][d - 1];
-                    }
-                }
+            for (int bSum = 0; bSum < aSum; bSum++) {
+                if (dpB[m][bSum] == 0) continue;
+
+                win += (long) dp[m][aSum] * dpB[m][bSum];
             }
         }
-        
-        int count = 0;
 
-        for (int aSum = 1; aSum <= maxSum; aSum++) {
-            for (int bSum = 1; bSum < aSum; bSum++) {
-                count += dp[aSum][n / 2 - 1] * dp1[bSum][n / 2 - 1];
-            }
-        }
-        
-        if (total < count) {
-            total = count;
-
-            for (int i = 0; i < n / 2; i++) {
-                answer[i] = choice[i] + 1;
-            }
-        }
+        return win;
     }
 }
