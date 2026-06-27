@@ -3,17 +3,19 @@ import java.util.*;
 class Solution {
     
     static int[] answer;
+    static int n; 
     
     public int[] solution(long[] numbers) {
         
-        answer = new int [numbers.length];
+        n = numbers.length;
         
-        for(int i=0; i<numbers.length; i++){
-            boolean flag = false;
+        answer = new int [n];
+        
+        for(int i=0; i<n; i++){
             
-            if(cal(numbers[i])) flag = true;
+            if(cal(numbers[i])) answer[i] = 1;
+            else answer[i] = 0;
             
-            if(flag) answer[i] = 1;
         }
         
         return answer;
@@ -21,45 +23,39 @@ class Solution {
     
     public static boolean cal(long number){
         
-        String str = Long.toBinaryString(number);
-        int strSize = str.length();
-        StringBuilder sb = new StringBuilder();
+        String num = Long.toBinaryString(number);
+        StringBuilder sb = new StringBuilder(num);
         
-        int size = 0;
-        while(size < strSize){
-            size = size * 2 + 1;
+        int total = 1;
+        while(total < sb.length()){
+            total = total * 2 + 1;
         }
         
-        while(size != strSize){
-            sb.append("0");
-            size--;
+        StringBuilder real = new StringBuilder();
+        int diff = total - sb.length(); 
+        for(int i=0; i<diff; i++){
+            real.append("0"); 
         }
-        sb.append(str);
         
-        int low = 0;
-        int high = sb.length() - 1;
-        return bin(sb, low, high);
+        real.append(num);
+        
+        return binary(real.toString(), 0, real.length() -1 );
     }
-    
-    public static boolean bin(StringBuilder sb, int low, int high){
-
-        if(low>high){
-            return true;
-        }
+     
+    public static boolean binary(String num, int low, int high){
         
-        int mid = (low + high) / 2 ;
+        if(low > high) return true;
         
-        if(sb.charAt(mid) == '0'){
-            if(lookUp(low, mid -1, sb)) return false;
-            if(lookUp(mid+1, high, sb)) return false;
-        }
+        int mid = (low + high) / 2;
         
-        return bin(sb, low, mid - 1) && bin(sb, mid + 1, high);
+        if(num.charAt(mid) == '0' && check(num, low, high)) return false;
+        
+        return binary(num, low, mid - 1) && binary(num, mid + 1, high);
     }
-    
-    public static boolean lookUp(int start, int end, StringBuilder sb){
-        for(int i=start; i<=end; i++){
-            if(sb.charAt(i) == '1') return true;
+               
+    public static boolean check(String num, int low, int high){
+        for(int i=low; i<=high; i++){
+            if(num.charAt(i) == '1') return true;
         }
         return false;
     }
