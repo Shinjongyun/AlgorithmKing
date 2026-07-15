@@ -3,187 +3,134 @@ import java.util.*;
 class Solution {
 
     static int[][] board;
-    static int[][] position = new int[7][4];
-    static boolean[] exists = new boolean[7];
-
-    static int[] dr = {-1, 1, 0, 0};
-    static int[] dc = {0, 0, -1, 1};
+    static int[][] dir = {{1, 0}, {-1, 0}, {0, -1}, {0, 1}};
+    static Set<Integer> set = new HashSet<>();
 
     public int solution(int[][] board, int r, int c) {
 
-        Solution.board = board;
-
-        int[] count = new int[7];
-
-        // 카드 위치 저장
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-
-                int card = board[i][j];
-
-                if (card == 0) {
-                    continue;
+        this.board = board;
+        
+        for(int i=0; i<board.length; i++){
+            for(int j=0; j<board[i].length; j++){
+                if(board[i][j] != 0){
+                    if(!set.contains(board[i][j])) set.add(board[i][j]);
                 }
-
-                exists[card] = true;
-
-                if (count[card] == 0) {
-                    position[card][0] = i;
-                    position[card][1] = j;
-                } else {
-                    position[card][2] = i;
-                    position[card][3] = j;
-                }
-
-                count[card]++;
             }
         }
-
-        return dfs(r, c);
+        
+        int answer = back(r, c);
+        return answer;
     }
+    
+    public static int back(int r, int c) {
 
-    static int dfs(int r, int c) {
+        // 모든 카드를 제거한 경우
+        if (set.isEmpty()) {
+            return 0;
+        }
 
-        int answer = Integer.MAX_VALUE;
-        boolean cardRemain = false;
+        int min = Integer.MAX_VALUE;
 
-        // 다음에 제거할 카드 선택
-        for (int card = 1; card <= 6; card++) {
+        // 반복 중 set을 삭제하므로 복사본으로 반복
+        List<Integer> cardList = new ArrayList<>(set);
 
-            if (!exists[card]) {
-                continue;
-            }
+        for (int s : cardList) {
 
-            cardRemain = true;
+            int[][] pos = findPos(s);
 
-            int r1 = position[card][0];
-            int c1 = position[card][1];
+            int r1 = pos[0][0];
+            int c1 = pos[0][1];
 
-            int r2 = position[card][2];
-            int c2 = position[card][3];
+            int r2 = pos[1][0];
+            int c2 = pos[1][1];
 
-            /*
-             * 현재 위치 → 첫 번째 카드 → 두 번째 카드
-             */
-            int first =
+            int firstMove =
                     bfs(r, c, r1, c1)
                     + bfs(r1, c1, r2, c2)
                     + 2;
 
-            /*
-             * 현재 위치 → 두 번째 카드 → 첫 번째 카드
-             */
-            int second =
+            int secondMove =
                     bfs(r, c, r2, c2)
                     + bfs(r2, c2, r1, c1)
                     + 2;
 
-            // 카드 제거
+            // 현재 카드 한 쌍 제거
             board[r1][c1] = 0;
             board[r2][c2] = 0;
-            exists[card] = false;
+            set.remove(s);
 
-            // 두 번째 카드 위치에서 다음 카드 제거
-            int firstResult = first + dfs(r2, c2);
+            int first =
+                    firstMove
+                    + back(r2, c2);
 
-            // 첫 번째 카드 위치에서 다음 카드 제거
-            int secondResult = second + dfs(r1, c1);
+            int second =
+                    secondMove
+                    + back(r1, c1);
 
-            answer = Math.min(
-                    answer,
-                    Math.min(firstResult, secondResult)
+            min = Math.min(
+                    min,
+                    Math.min(first, second)
             );
 
-            // 원상 복구
-            board[r1][c1] = card;
-            board[r2][c2] = card;
-            exists[card] = true;
+            // 제거했던 카드 복구
+            board[r1][c1] = s;
+            board[r2][c2] = s;
+            set.add(s);
         }
 
-        // 남은 카드가 없음
-        if (!cardRemain) {
-            return 0;
-        }
-
-        return answer;
+        return min;
     }
-
-    static int bfs(
-            int startR,
-            int startC,
-            int targetR,
-            int targetC
-    ) {
-
-        Queue<int[]> queue = new ArrayDeque<>();
-        boolean[][] visited = new boolean[4][4];
-
-        queue.offer(new int[]{
-                startR,
-                startC,
-                0
-        });
-
-        visited[startR][startC] = true;
-
-        while (!queue.isEmpty()) {
-
-            int[] current = queue.poll();
-
-            int r = current[0];
-            int c = current[1];
-            int count = current[2];
-
-            if (r == targetR && c == targetC) {
-                return count;
-            }
-
-            for (int direction = 0; direction < 4; direction++) {
-
-                // 일반 방향키 이동
-                int nr = r + dr[direction];
-                int nc = c + dc[direction];
-
-                if (isInRange(nr, nc) && !visited[nr][nc]) {
-                    visited[nr][nc] = true;
-
-                    queue.offer(new int[]{
-                            nr,
-                            nc,
-                            count + 1
-                    });
+    
+    public static int bfs(int r, int c, int x, int y){
+        
+        boolean[][] visited = new boolean [board.length][board.length];
+        Queue<int []> q = new LinkedList<>(); 
+        q.add(new int[] {r, c, 0});
+        visited[r][c] = true; 
+        
+        while(!q.isEmpty()){
+            
+            int[] cur = q.poll(); 
+            
+            for(int i=0; i<4; i++){
+                
+                int nx = cur[0] + dir[i][0];
+                int ny = cur[1] + dir[i][1]; 
+                int count = cur[2];
+                
+                if (cur[0] == x && cur[1] == y) {
+                    return count;
                 }
+                
+                if(nx>=0 && ny>=0 && nx<4 && ny<4 && !visited[nx][ny]){
+                    visited[nx][ny] = true;
+                    q.add(new int [] {nx, ny, count + 1});
+                }
+                
+                int[] ctrl = ctrlMove(cur[0], cur[1], i);
 
-                // Ctrl + 방향키 이동
-                int[] ctrl = ctrlMove(r, c, direction);
-
-                nr = ctrl[0];
-                nc = ctrl[1];
+                int nr = ctrl[0];
+                int nc = ctrl[1];
 
                 if (!visited[nr][nc]) {
                     visited[nr][nc] = true;
 
-                    queue.offer(new int[]{
-                            nr,
-                            nc,
-                            count + 1
-                    });
+                    q.offer(new int[]{ nr, nc, count + 1});
                 }
             }
-        }
-
-        return 0;
+        }  
+        return -1; 
     }
-
+    
     static int[] ctrlMove(int r, int c, int direction) {
 
         while (true) {
 
-            int nr = r + dr[direction];
-            int nc = c + dc[direction];
+            int nr = r + dir[direction][0];
+            int nc = c + dir[direction][1];
 
             // 보드 밖이면 현재 칸에서 멈춤
-            if (!isInRange(nr, nc)) {
+            if (nr<0 || nc <0 || nr>=4 || nc >=4) {
                 return new int[]{r, c};
             }
 
@@ -196,9 +143,20 @@ class Solution {
             }
         }
     }
-
-    static boolean isInRange(int r, int c) {
-        return r >= 0 && r < 4
-                && c >= 0 && c < 4;
+    
+    public static int[][] findPos(int num){
+        
+        int[][] pos = new int [2][2];
+        int idx = 0;
+        for(int i=0; i<board.length; i++){
+            for(int j=0; j<board[i].length; j++){
+                if(board[i][j] == num){
+                    pos[idx][0] = i;
+                    pos[idx][1] = j;
+                    idx++; 
+                }
+            }
+        }
+        return pos;
     }
 }
