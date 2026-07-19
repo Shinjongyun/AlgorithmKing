@@ -2,67 +2,68 @@ import java.util.*;
 
 class Solution {
 
-    static int answer = 0;
+    static List<Edge>[] graph; 
     static int n;
-    static List<Integer>[] tree;
     static int[] info;
-
+    static int answer = 0;
+    static boolean[] visited;
+    
+    static class Edge{
+        int to;
+        public Edge(int to){
+            this.to = to;
+        }
+    }
+    
     public int solution(int[] info, int[][] edges) {
+        
         this.info = info;
         n = info.length;
-
-        tree = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            tree[i] = new ArrayList<>();
+        
+        visited = new boolean [n];
+        graph = new List[n];
+        for(int i=0; i<n; i++){
+            graph[i] = new ArrayList<>(); 
         }
-
-        for (int[] e : edges) {
-            tree[e[0]].add(e[1]);
+        
+        for(int[] e : edges){
+            int from = e[0];
+            int to = e[1];
+            
+            graph[from].add(new Edge(to));
         }
-
-        List<Integer> can = new ArrayList<>();
-
-        // 0번 노드의 자식들을 후보에 넣고 시작
-        for (int child : tree[0]) {
-            can.add(child);
-        }
-
-        dfs(1, 0, can);
-
+        
+        List<Integer> list = new ArrayList<>();
+        dfs(0, 0, 0, list);
         return answer;
     }
-
-    public static void dfs(int sheep, int wolf, List<Integer> can) {
-        answer = Math.max(answer, sheep);
-
-        for (int i = 0; i < can.size(); i++) {
-            int next = can.get(i);
-
-            int nextSheep = sheep;
-            int nextWolf = wolf;
-
-            if (info[next] == 1) {
-                nextWolf++;
-            } else {
-                nextSheep++;
+    
+    public static void dfs (int cur, int sCount, int wCount, List<Integer> past){
+        
+        List<Integer> list = new ArrayList<>(past);
+        
+        if(info[cur] == 0) sCount++;
+        else wCount++; 
+        
+        answer = Math.max(answer, sCount); 
+        
+        // 안 왔으면 후보에 넣기
+        for(Edge e : graph[cur]){
+            if(!visited[e.to]){
+                list.add(e.to);
             }
-
-            if (nextWolf >= nextSheep) {
-                continue;
-            }
-
-            // 현재 후보 리스트 복사
-            List<Integer> nextCan = new ArrayList<>(can);
-
-            // 방문할 노드는 후보에서 제거
-            nextCan.remove(i);
-
-            // 방문한 노드의 자식들을 후보에 추가
-            for (int child : tree[next]) {
-                nextCan.add(child);
-            }
-
-            dfs(nextSheep, nextWolf, nextCan);
+        }
+        
+        for(int i=0; i<list.size(); i++){
+            
+            if(visited[list.get(i)]) continue;
+            
+            // 다음 갈 곳이 늑대인 경우
+            if(info[list.get(i)] == 1 && sCount - wCount == 1) continue;
+            
+            visited[list.get(i)] = true;
+            dfs(list.get(i), sCount, wCount, list);
+            visited[list.get(i)] = false;
         }
     }
 }
