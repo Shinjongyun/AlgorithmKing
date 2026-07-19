@@ -31,9 +31,11 @@ class Solution {
             int to = e[1];
             
             graph[from].add(new Edge(to));
+            graph[to].add(new Edge(from));
         }
         
         List<Integer> list = new ArrayList<>();
+        visited[0] = true;
         dfs(0, 0, 0, list);
         return answer;
     }
