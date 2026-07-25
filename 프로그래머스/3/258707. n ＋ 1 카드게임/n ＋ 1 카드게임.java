@@ -2,88 +2,189 @@ import java.util.*;
 
 class Solution {
     
-    static int coin;
-    static int[] cards;
+    static Set<Integer> hand = new HashSet<>();
+    static Set<Integer> trash = new HashSet<>();
     static int n;
-    static Set<Integer> hand = new HashSet<>(); 
-    static Set<Integer> hubo = new HashSet<>(); 
+    static int target;
     
     public int solution(int coin, int[] cards) {
         
-        this.coin = coin;   
-        this.cards = cards;
         n = cards.length;
-        
+        target = n + 1;
         for(int i=0; i<n/3; i++){
-            hand.add(cards[i]);    
+            hand.add(cards[i]);
         }
         
-        int round = 1;
-        for(int step = n/3; step+1<cards.length; step+=2){
+        int count = 1;
+        for(int i=n/3; i<n; i+=2){
             
-            int first = cards[step];
-            int second = cards[step+1];
-            hubo.add(first);
-            hubo.add(second);
+            int first = cards[i];
+            int second = cards[i+1];
             
-            // 손안에서 해결이 가능한 경우 - 가장 좋은 경우 
-            if(check()) {
-                round++;
-                continue;
+            // best 그냥 손에서 해결
+            if(handChecking()){
+                trash.add(first);
+                trash.add(second);
+                count++;
+                continue; 
             }
             
-            boolean flag = false;
-            
-            // 한장만 되는 경우
-            for(int cur : hubo){
+            // 차선 : 동전 하나쓰고 해결
+            if(coin - 1 >= 0){
                 
-                int target = n+1-cur;
-                if(coin > 0 && hand.contains(target)){
+                if(isValid(first)){
+                    trash.add(second);
                     coin--;
-                    round++;
-                    flag = true;
-                    hubo.remove(cur);
-                    hand.remove(target);
-                    break;
+                    count++;
+                    continue;
                 }
-            }
-            
-             if (flag) continue;
-            
-            // 손에 잇는 놈끼리 되는 결루
-            for(int cur:hubo){
                 
-                int target = n+1-cur;
-                if(coin - 1 >0 && hubo.contains(target)){
-                    coin-=2;
-                    round++;
-                    flag = true;
-                    hubo.remove(cur);
-                    hubo.remove(target);
-                    break;
+                if(isValid(second)){
+                    trash.add(first);
+                    coin--;
+                    count++;
+                    continue;
+                }
+                
+                if(handTrashChecking()){
+                    trash.add(first);
+                    trash.add(second);
+                    coin--;
+                    count++;
+                    continue;
                 }
             }
             
-            // flag true면 다음 라운드
-            if(flag) continue;
+            // 동전 2개쓰기, 쓰레기 더미 + 뽑기 or 뽑기s or 쓰레기 더미s
+            if(coin - 2 >= 0){
+                
+                if(first + second == target){
+                    coin -= 2;
+                    count++;
+                    continue;
+                }
+                
+                if(isValidT(first)){
+                    trash.add(second);
+                    coin -= 2;
+                    count++; 
+                    continue;
+                }
+                
+                if(isValidT(second)){
+                    trash.add(first);
+                    coin -= 2;
+                    count++; 
+                    continue;
+                }
+                
+                if(trashChecking()){
+                    trash.add(first);
+                    trash.add(second);
+                    coin -= 2;
+                    count++; 
+                    continue;
+                }
+            }
             
-            break;
+            // 라운드 패배
+            break; 
+        }
+        return count;
+    }
+    
+    public static boolean handTrashChecking(){
+        
+        int mem = 0;
+        int mem1 = 0;
+        boolean found = false;
+        
+        for(int i : hand){
+            for(int j : trash){
+                if(i + j == target){
+                    mem = i;
+                    mem1 = j; 
+                    found = true;
+                    break;
+                }
+            }
+            if(found) break;
         }
         
-        return round;
-    }   
+        if(found){
+            hand.remove(mem);
+            trash.remove(mem1);
+            return true;
+        }
+        return false; 
+        
+    }
     
-    public static boolean check(){
-        for(int cur : hand){
+    public static boolean isValidT(int num){
+        if(trash.contains(target - num)){
+            trash.remove(target - num); 
+            return true;
+        }
+        return false;
+    }
+    
+    public static boolean trashChecking(){
+        
+        int mem = 0;
+        int mem1 = 0;
+        boolean found = false;
+        
+        for(int i : trash){
             
-            int target = n+1-cur;
-            if(hand.contains(target)) {
+            if(trash.contains(target - i)){
                 
-                hand.remove(cur);
-                hand.remove(target);
+                mem = i;
+                mem1 = target - i;
+                found = true;
+                break;
                 
-                return true;
-            }
+            } 
+        }
+        
+        if(found){
+            trash.remove(mem);
+            trash.remove(mem1);
+            return true;
+        }
+        return false; 
+    }
+    
+    public static boolean handChecking(){
+        
+        int mem =0 ;
+        int mem1 = 0;
+        boolean found = false;
+        
+        for(int i : hand){
+            
+            if(hand.contains(target - i)){
+                
+                mem = i;
+                mem1 = target - i;
+                found = true;
+                break;
+                
+            } 
+        }
+        
+        if(found){
+            hand.remove(mem);
+            hand.remove(mem1);
+            return true;
+        }
+        return false; 
+    }
+    
+    public static boolean isValid(int num){
+        
+        if(hand.contains(target - num)){
+            hand.remove(target - num); 
+            return true;
         }
         return false;
     }
