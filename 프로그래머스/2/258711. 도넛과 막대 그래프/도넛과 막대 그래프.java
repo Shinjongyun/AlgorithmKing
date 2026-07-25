@@ -2,97 +2,92 @@ import java.util.*;
 
 class Solution {
     
-    static int[] answer = new int[4];
-    static int n = 0;
-    static List<Edge>[] graph;
-    static int start;
+    static int[] answer = new int [4];
+    static int n;
+    static List<Edge>[] graph; 
+    static int[] count;
     
-    static class Edge{
+    class Edge{
         int to;
-        boolean visited;
-        
-        public Edge(int t){
-            this.to = t;
+        boolean visited; 
+        Edge(int to){
+            this.to = to;
             this.visited = false;
         }
     }
-        
+    
     public int[] solution(int[][] edges) {
-        
-        
-        for(int i=0; i<edges.length; i++){
-           int from = edges[i][0];
-           int to = edges[i][1];
-            int one = Math.max(from, to);
-            n =Math.max(n, one);
-       }
-        
-        boolean[] find = new boolean[n+1];
-        int[] out = new int[n + 1];          // 나가는 간선 개수
-        
-        for(int i=0; i<edges.length; i++){
-             int from = edges[i][0];
-           int to = edges[i][1];
-            find[to] = true;
-            out[from]++;
-       }
-        
-        for(int i=1; i<=n; i++){
-            if(!find[i] && out[i] >= 2){
-                start = i;
-                break;
-            }
+       
+        n = 0;
+        for(int[] e : edges){
+            n = Math.max(n, e[0]);
+            n = Math.max(n, e[1]);
         }
-        answer[0] = start;
         
-        graph = new List[n + 1];
+        graph = new List[n+1];
         for(int i=1; i<=n; i++){
             graph[i] = new ArrayList<>();
         }
+        count = new int[n+1];
         
+        for(int[] e : edges){
+            graph[e[0]].add(new Edge(e[1]));
+        }
         
-       for(int i=0; i<edges.length; i++){
-           int from = edges[i][0];
-           int to = edges[i][1];
-           graph[from].add(new Edge(to));
-       }
+        boolean[] visited = new boolean[n+1];
+        for(int[] e : edges){
+            visited[e[1]] = true;
+        }
+        for(int i=1; i<=n; i++){
+            if(!visited[i] && graph[i].size() >= 2){
+                answer[0] = i;
+                break;
+            }
+        }
         
-        int[] time = new int[n+1];
-        dfs(start, true, 0, time);
+        for(Edge e : graph[answer[0]]){
+            bfs(e.to);
+        }
         return answer;
     }
     
-    public static void dfs(int cur, boolean isDonut, int cycle, int[] time){
-
-        for(Edge e : graph[cur]){
+    public static void bfs(int start){
+        
+        
+        
+        Queue<Integer> q = new LinkedList<>();
+        q.add(start);
+        count[start]++;
+        boolean isPal = false; 
+        
+        while(!q.isEmpty()){
             
-            boolean nextIsDonut = isDonut;
-
-            if (graph[e.to].size() != 1) {
-                nextIsDonut = false;
+            int cur = q.poll();
+            
+            // System.out.print(cur + " ");
+            
+            if(graph[cur].size() == 2) isPal = true;
+            
+            if(graph[cur].size() == 0){
+                answer[2]++;
+                return;
             }
             
-            if(!e.visited){
-                if(cur == start){
-                    cycle = e.to;
-                }
+            for(Edge e : graph[cur]){
                 
-                if(graph[e.to].size() == 0){
-                    answer[2]++;
-                    continue;
-                }
-                
-                if(cycle == e.to && isDonut && time[e.to] == graph[e.to].size()){
-                    answer[1]++;
-                }
-                
-                if(cycle == e.to && !isDonut && time[e.to] == graph[e.to].size()){
+                if(e.to == start && isPal){
                     answer[3]++;
+                    return;
                 }
                 
-                e.visited  = true;
-                time[e.to]++;
-                dfs(e.to, nextIsDonut, cycle, time);
+                if(e.to == start && !isPal){
+                    answer[1]++;
+                    return; 
+                }
+                
+                if(e.visited) continue;
+                e.visited = true;
+                q.add(e.to);
             }
         }
     }
