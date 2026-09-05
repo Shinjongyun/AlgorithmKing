@@ -2,64 +2,65 @@ import java.util.*;
 
 class Solution {
 
+    static int INF = Integer.MAX_VALUE;
+
     public int solution(int alp, int cop, int[][] problems) {
 
-        int maxAlp = 0;
-        int maxCop = 0;
+        int[][] dp = new int[181][181];
 
-        for (int i = 0; i < problems.length; i++) {
-            maxAlp = Math.max(maxAlp, problems[i][0]);
-            maxCop = Math.max(maxCop, problems[i][1]);
+        for (int i = 0; i < dp.length; i++) {
+            Arrays.fill(dp[i], INF);
         }
 
-        alp = Math.min(alp, maxAlp);
-        cop = Math.min(cop, maxCop);
+        int targetA = alp;
+        int targetC = cop;
 
-        int[][] dp = new int[maxAlp + 1][maxCop + 1];
-
-        for (int i = 0; i <= maxAlp; i++) {
-            Arrays.fill(dp[i], Integer.MAX_VALUE);
+        for (int[] p : problems) {
+            targetA = Math.max(targetA, p[0]);
+            targetC = Math.max(targetC, p[1]);
         }
+
+        // 목표보다 이미 높으면 목표까지만 취급
+        alp = Math.min(alp, targetA);
+        cop = Math.min(cop, targetC);
 
         dp[alp][cop] = 0;
 
-        for (int al = alp; al <= maxAlp; al++) {
-            for (int co = cop; co <= maxCop; co++) {
+        for (int a = alp; a <= targetA; a++) {
+            for (int c = cop; c <= targetC; c++) {
 
-                if (dp[al][co] == Integer.MAX_VALUE) {
-                    continue;
-                }
+                if (dp[a][c] == INF) continue;
 
                 // 알고력 공부
-                if (al + 1 <= maxAlp) {
-                    dp[al + 1][co] = Math.min(dp[al + 1][co], dp[al][co] + 1);
+                if (a < targetA) {
+                    dp[a + 1][c] =
+                            Math.min(dp[a + 1][c], dp[a][c] + 1);
                 }
 
                 // 코딩력 공부
-                if (co + 1 <= maxCop) {
-                    dp[al][co + 1] = Math.min(dp[al][co + 1], dp[al][co] + 1);
+                if (c < targetC) {
+                    dp[a][c + 1] =
+                            Math.min(dp[a][c + 1], dp[a][c] + 1);
                 }
 
                 // 문제 풀기
-                for (int i = 0; i < problems.length; i++) {
+                for (int[] p : problems) {
 
-                    int curAlp = problems[i][0];
-                    int curCop = problems[i][1];
-                    int rwAlp = problems[i][2];
-                    int rwCop = problems[i][3];
-                    int cost = problems[i][4];
+                    if (a >= p[0] && c >= p[1]) {
 
-                    if (al >= curAlp && co >= curCop) {
-                        int nextAlp = Math.min(maxAlp, al + rwAlp);
-                        int nextCop = Math.min(maxCop, co + rwCop);
+                        int nextA = Math.min(targetA, a + p[2]);
+                        int nextC = Math.min(targetC, c + p[3]);
 
-                        dp[nextAlp][nextCop] =
-                                Math.min(dp[nextAlp][nextCop], dp[al][co] + cost);
+                        dp[nextA][nextC] =
+                                Math.min(
+                                        dp[nextA][nextC],
+                                        dp[a][c] + p[4]
+                                );
                     }
                 }
             }
         }
 
-        return dp[maxAlp][maxCop];
+        return dp[targetA][targetC];
     }
 }
