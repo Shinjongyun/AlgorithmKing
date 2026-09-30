@@ -1,7 +1,12 @@
 -- 코드를 작성해주세요
-SELECT YEAR(E.DIFFERENTIATION_DATE) AS YEAR, 
-( SELECT MAX(SIZE_OF_COLONY) FROM ECOLI_DATA D WHERE YEAR(D.DIFFERENTIATION_DATE)
-            = YEAR(E.DIFFERENTIATION_DATE)) -  E.SIZE_OF_COLONY AS YEAR_DEV,
-E.ID
-FROM ECOLI_DATA E
-ORDER BY YEAR(E.DIFFERENTIATION_DATE) ASC, YEAR_DEV ASC
+
+select YEAR(c.DIFFERENTIATION_DATE) AS YEAR,
+    M.maxSIZE - c.SIZE_OF_COLONY AS YEAR_DEV,
+    c.ID
+from ecoli_data c 
+join (select year(differentiation_date) as year, max(size_of_colony) as maxSize from ecoli_data
+                 group by year) m 
+      ON m.year = YEAR(c.differentiation_date)
+ORDER BY
+    YEAR ASC,
+    YEAR_DEV ASC;
