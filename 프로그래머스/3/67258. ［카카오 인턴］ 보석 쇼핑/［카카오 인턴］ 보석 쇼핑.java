@@ -1,61 +1,57 @@
 import java.util.*;
 
 class Solution {
-
     public int[] solution(String[] gems) {
-        int[] answer = new int[2];
-
-        Set<String> set = new HashSet<>();
-        for(int i = 0; i < gems.length; i++){
-            set.add(gems[i]);
+        
+        int[] answer = new int [2]; 
+        
+        Set<String> set = new HashSet<>(); 
+        for(String g : gems){
+            if(!set.contains(g)) set.add(g);
         }
-
-        int min = Integer.MAX_VALUE;
-
+        int target = set.size();
+        
+        Map<String, Integer> map = new HashMap<>();
+        int left = 0; 
         int right = 1;
-        int left = 0;
 
-        Map<String, Integer> bag = new HashMap<>();
-        bag.put(gems[0], 1);
-
-        while(true){
-
-            // 모든 종류가 들어있으면
-            if(bag.size() == set.size()){
-
-                int dist = right - left;
-
-                if(min > dist){
-                    min = dist;
-                    answer[0] = left + 1;
-                    answer[1] = right;
+        int length = gems.length;
+        answer[0] = 1;
+        answer[1] = gems.length;
+        
+        map.put(gems[left], 1);
+        while(right <= gems.length){
+            int count = map.size();            
+            
+            if(count < target){
+                if (right == gems.length) break;
+                String next = gems[right];
+                if(!map.containsKey(next)){
+                    map.put(next, 1);
                 }
-
-                // 왼쪽 줄이기
-                String past = gems[left++];
-
-                if(bag.get(past) == 1)
-                    bag.remove(past);
-                else
-                    bag.put(past, bag.get(past) - 1);
+                else{
+                    map.put(next, map.get(next) + 1);
+                }
+                right++;
             }
-
-            // 종류가 부족하면 오른쪽 늘리기
-            else {
-
-                // ★ 여기서 종료
-                if(right == gems.length)
-                    break;
-
-                String next = gems[right++];
-
-                if(!bag.containsKey(next))
-                    bag.put(next, 1);
-                else
-                    bag.put(next, bag.get(next) + 1);
+            else{
+                if(length > right - left){
+                    answer[0] = left+1;
+                    answer[1] = right;
+                    length = right - left;
+                }
+                
+                String past = gems[left];
+                if(map.get(past) == 1){
+                    map.remove(past);
+                }
+                else{
+                    map.put(past, map.get(past) - 1);
+                }
+                left++;
             }
         }
-
+        
         return answer;
     }
 }
