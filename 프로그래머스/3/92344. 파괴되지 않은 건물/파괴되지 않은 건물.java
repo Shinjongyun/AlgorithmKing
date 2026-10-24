@@ -1,34 +1,38 @@
 import java.util.*;
 
 class Solution {
-    
-    static int answer = 0;
-    static int[][] board;
-    static int[][] sum;
-    static int n, m;
-    
     public int solution(int[][] board, int[][] skill) {
-        n = board.length;
-        m = board[0].length;
-        this.board = board; 
-        sum = new int [n+1][m+1];
+        int answer = 0;
         
-        for(int[] p : skill){
+        int n = board.length; 
+        int m = board[0].length; 
+        int[][] sum = new int [n+1][m+1];
+        
+        for(int [] s : skill){
             
-            int r1 = p[1];
-            int c1 = p[2];
-            int r2 = p[3];
-            int c2 = p[4];
-            int type = p[0];
-            int degree = p[5]; 
-             
-            if(type == 1) degree *= -1;
+            int type = s[0];
+            int r1 = s[1]; 
+            int c1 = s[2] ;
+            int r2 = s[3]; 
+            int c2 = s[4]; 
+            int degree = s[5]; 
             
-            sum[r1][c1] += degree;
-            sum[r2 + 1][c1] -= degree;
-            sum[r1][c2 + 1] -= degree;
-            sum[r2 + 1][c2 + 1] += degree;
-            
+            // 공격
+            if(type == 1){
+                
+                sum[r1][c1] -= degree; 
+                sum[r1][c2+1] += degree; 
+                sum[r2+1][c1] += degree; 
+                sum[r2+1][c2+1] -= degree; 
+                
+            }
+            // 복구
+            else{
+                sum[r1][c1] += degree; 
+                sum[r1][c2+1] -= degree; 
+                sum[r2+1][c1] -= degree; 
+                sum[r2+1][c2+1] += degree; 
+            }
         }
         
         for(int i=0; i<=n; i++){
@@ -38,16 +42,18 @@ class Solution {
         }
         
         for(int j=0; j<=m; j++){
-            for(int i=1; i<=n; i++){ 
+            for(int i=1; i<=n; i++){
                 sum[i][j] += sum[i-1][j];
             }
         }
         
         for(int i=0; i<n; i++){
             for(int j=0; j<m; j++){
-                if(sum[i][j] + board[i][j] > 0) answer++; 
+                board[i][j] += sum[i][j]; 
+                if(board[i][j] > 0) answer++;
             }
         }
-        return answer; 
+        
+        return answer;
     }
 }
