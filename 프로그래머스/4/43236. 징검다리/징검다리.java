@@ -3,56 +3,53 @@ import java.util.*;
 class Solution {
     
     static int[] rocks;
-    static int answer;
-    static int distance;
-    static int n;
+    static int distance, n;
     
     public int solution(int distance, int[] rocks, int n) {
-        
+        int answer = 0;
+        this.rocks = rocks;
+        this.n = n;
+        this.distance = distance;
+    
         Arrays.sort(rocks);
         
-        this.rocks = rocks;
-        this.distance = distance;
-        this.n = n;
-        this.answer = 0;
-
-        binary(1, distance);
-
-        return answer;
-    }
-    
-    public static void binary(int low, int high) {
-        if (low > high) return;
-        
-        int mid = (low + high) / 2;
-        
-        if (cal(mid)) {
-            answer = mid;
-            binary(mid + 1, high); // 가능하면 더 큰 최소 거리 도전
-        } else {
-            binary(low, mid - 1); // 불가능하면 거리 줄이기
-        }
-    }
-    
-    public static boolean cal(int mid) {
-        int remove = 0;
-        int prev = 0;
-        
-        for (int i = 0; i < rocks.length; i++) {
-            int cur = rocks[i];
+        int low = 1; 
+        int high = distance;
+        while(low <= high){
             
-            if (cur - prev < mid) {
-                remove++;
-            } else {
-                prev = cur;
+            int mid = (low + high) / 2; 
+            
+            if(cal(mid)){
+                answer = Math.max(mid, answer);
+                low = mid + 1;
+            }
+            else{
+                high = mid - 1;
             }
         }
         
-        // 마지막 바위에서 도착지점까지 거리 체크
-        if (distance - prev < mid) {
-            remove++;
-        }
+        return answer;
+    }
+    
+    public static boolean cal(int mid){
         
-        return remove <= n;
+        int count = 0;
+        int last = 0;
+        
+        for(int i=0; i<=rocks.length; i++){
+            
+            int dist; 
+            if(i== rocks.length) dist = distance - last; 
+            else dist = rocks[i] - last; 
+            
+            if(dist < mid) {
+                count++;
+            }
+            else {
+                if(i < rocks.length) last = rocks[i];
+            }
+            if(count > n) return false;
+        }
+        return true;
     }
 }
